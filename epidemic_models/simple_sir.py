@@ -81,6 +81,10 @@ class SimpleSIR(object):
 
         self._timeSeries = PopulationTimeSeries()
 
+    @property
+    def timeSeries(self):
+        return self._timeSeries
+
     def currentPopulation(self):
         return self._population
 
