@@ -15,7 +15,8 @@ setup(name='epidemic_models',
       license='',
       keywords='SIR',
       packages=['epidemic_models',
-                'epidemic_models.utils'
+                'epidemic_models.utils',
+                'epidemic_models.mains'
                 ],
       install_requires=["numpy",
                         "openpyxl",
