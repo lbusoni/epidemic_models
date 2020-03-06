@@ -124,7 +124,7 @@ class SimpleSIR(object):
         plt.plot(ts.timeVector, ts.infectives, label='Infectives')
         plt.plot(ts.timeVector, ts.recoveredWithImmunity, label='Recovered with Immunity')
         # plt.plot(ts.timeVector, ts.justInfected, label='Just Infected')
-        plt.plot(ts.timeVector, self.forceOfInfection(), label='Force of Infection')
+        # plt.plot(ts.timeVector, self.forceOfInfection(), label='Force of Infection')
         t = "Contact rate %g - Infective period %g\nInfective peak %g" % (
             self.contactRate(), self.averageInfectiousPeriod(),
             ts.infectives.max())
@@ -132,6 +132,7 @@ class SimpleSIR(object):
         plt.legend()
         plt.grid(True)
         plt.show()
+        plt.semilogy()
 
 
 def main(susceptibles=90, infectives=10, immunes=0,
