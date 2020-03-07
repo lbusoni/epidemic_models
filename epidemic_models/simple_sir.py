@@ -72,12 +72,20 @@ class SimpleSIR(object):
     def __init__(self, susceptibles=90, infectives=10, immunes=0,
                  contact_rate=0.3, average_infection_period=10,
                  nSteps=100.):
+        self._nSteps = nSteps
         self._population = Population(susceptibles, infectives, immunes)
-        self._beta = contact_rate
-        self._gamma = 1.0 / average_infection_period
+        if np.isscalar(contact_rate): 
+            self._beta = np.ones(self._nSteps) * contact_rate
+        else:
+            assert len(contact_rate) == nSteps
+            self._beta = contact_rate
+        if np.isscalar(average_infection_period):
+            self._gamma = np.ones(self._nSteps) / average_infection_period
+        else:
+            assert len(average_infection_period) == nSteps
+            self._gamma = 1. / average_infection_period
 
         self._dt = 1
-        self._nSteps = nSteps
 
         self._timeSeries = PopulationTimeSeries()
 
@@ -104,13 +112,13 @@ class SimpleSIR(object):
         return self._beta * self._timeSeries.infectives / \
                 self._timeSeries.totalPopulation
 
-    def _singleStep(self):
+    def _singleStep(self, step):
         cp = self.currentPopulation()
         dt = self._dt
-        dS = -self._beta * cp.susceptibles * cp.infectives / cp.totalPopulation
-        dI = self._beta * cp.susceptibles * cp.infectives / cp.totalPopulation - \
-            self._gamma * cp.infectives
-        dR = self._gamma * cp.infectives
+        dS = -self._beta[step] * cp.susceptibles * cp.infectives / cp.totalPopulation
+        dI = self._beta[step] * cp.susceptibles * cp.infectives / cp.totalPopulation - \
+            self._gamma[step] * cp.infectives
+        dR = self._gamma[step] * cp.infectives
         S = np.clip(cp.susceptibles + dS * dt, 0, cp.totalPopulation)
         self._population = Population(S,
                                      cp.infectives + dI * dt,
@@ -119,7 +127,7 @@ class SimpleSIR(object):
     def evolveSystem(self):
         for i in np.arange(self._nSteps):
             self._timeSeries.append(self.currentPopulation(), self._dt * i)
-            self._singleStep()
+            self._singleStep(i)
 
     def plot(self):
         ts = self._timeSeries
@@ -129,8 +137,9 @@ class SimpleSIR(object):
         plt.plot(ts.timeVector, ts.recoveredWithImmunity, label='Recovered with Immunity')
         # plt.plot(ts.timeVector, ts.justInfected, label='Just Infected')
         # plt.plot(ts.timeVector, self.forceOfInfection(), label='Force of Infection')
-        t = "Contact rate %g - Infective period %g\nInfective peak %g" % (
-            self.contactRate(), self.averageInfectiousPeriod(),
+        t = "Contact rate (%g, %g) - Infective period (%g, %g)\nInfective peak %g" % (
+            self.contactRate().min(), self.contactRate().max(),
+            self.averageInfectiousPeriod().min(), self.averageInfectiousPeriod().max(),
             ts.infectives.max())
         plt.title(t)
         plt.legend()

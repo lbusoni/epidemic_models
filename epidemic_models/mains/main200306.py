@@ -55,12 +55,8 @@ def main():
     system.plot()
 
     cfr = 0.03
-    delayID = system.averageInfectiousPeriod()
-    ff = np.ones(int(delayID)) / delayID
-    deaths = cfr * convolve(
-        system.timeSeries.infectives, ff, mode='full')[:len(
-            system.timeSeries.timeVector)]
-    plt.plot(deaths, label='deaths (CFR=%g, delay=%g days)' % (cfr, delayID))
+    deaths = cfr * system.timeSeries.recoveredWithImmunity
+    plt.plot(deaths, label='deaths (CFR=%g)' % (cfr))
 
     plt.plot(np.arange(len(deH)) + 27, deH, '.-', label='deaths Hubei')
     plt.plot(np.arange(len(deI)) + 27, deI, '.-', label='deaths Italy')
