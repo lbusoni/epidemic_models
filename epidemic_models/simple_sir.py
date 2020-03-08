@@ -74,7 +74,7 @@ class SimpleSIR(object):
                  nSteps=100.):
         self._nSteps = nSteps
         self._population = Population(susceptibles, infectives, immunes)
-        if np.isscalar(contact_rate): 
+        if np.isscalar(contact_rate):
             self._beta = np.ones(self._nSteps) * contact_rate
         else:
             assert len(contact_rate) == nSteps
@@ -116,8 +116,7 @@ class SimpleSIR(object):
         cp = self.currentPopulation()
         dt = self._dt
         dS = -self._beta[step] * cp.susceptibles * cp.infectives / cp.totalPopulation
-        dI = self._beta[step] * cp.susceptibles * cp.infectives / cp.totalPopulation - \
-            self._gamma[step] * cp.infectives
+        dI = -dS - self._gamma[step] * cp.infectives
         dR = self._gamma[step] * cp.infectives
         S = np.clip(cp.susceptibles + dS * dt, 0, cp.totalPopulation)
         self._population = Population(S,
