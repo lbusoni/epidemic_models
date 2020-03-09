@@ -45,68 +45,53 @@ def main():
     plt.show()
     plt.semilogy()
 
-    co2de = 0.04
-    delay_co2de = 2
-    ff = np.ones(int(delay_co2de)) / delay_co2de
-    expDeH = co2de * convolve(coH, ff, mode='full')[:len(coH)]
-    expDeI = co2de * convolve(coI, ff, mode='full')[:len(coI)]
-    expDeR = co2de * convolve(coR, ff, mode='full')[:len(coR)]
-    plt.figure()
-    plt.plot(deId, deI, '.-', label='Deaths Italy')
-    plt.plot(deRd, deR, '.-', label='Deaths Iran')
-    plt.plot(deHd, deH, '.-', label='Deaths Hubei')
-    plt.plot(coId, coI, '.-', label='Confirmed Italy')
-    plt.plot(coRd, coR, '.-', label='Confirmed Iran')
-    plt.plot(coHd, coH, '.-', label='Confirmed Hubei')
-    plt.plot(coId, expDeI, label='Expected Deaths Italy')
-    plt.plot(coRd, expDeR, label='Expected Deaths Iran')
-    plt.plot(coHd, expDeH, label='Expected Deaths Hubei')
-    t = "Confirmed 2 Dead\n co2de=%g, delay=%g d" % (co2de, delay_co2de)
-    plt.title(t)
-    plt.legend()
-    plt.grid(True)
-    plt.ylabel('Total deaths')
-    plt.xlabel(strdates)
-    plt.ylim(1,)
-    plt.show()
-    plt.semilogy()
-
     pop = 6e7
     nSteps = 100
-    delayModel = 0
+    cfr = 0.03
+    delayModel = -3
     beta = np.zeros(nSteps)
-    beta[:30] = 0.6
-    beta[30:] = 0.3
-    gamma = 0.3
-    system = simple_sir.SimpleSIR(pop, 1, 0, beta, 1 / gamma, nSteps)
+    tInt1 = 33
+    beta[:tInt1] = 0.481
+    beta[tInt1:] = 0.192
+    gamma = 0.192
+    system = simple_sir.SimpleSIR(pop, 1, 0, beta, 1 / gamma, nSteps,
+                                  t0=delayModel)
     system.evolveSystem()
     system.plot(susceptibles=False, infectives=False, recovered=False)
+    deaths = cfr * system.timeSeries.recoveredWithImmunity
+    plt.plot(system.timeSeries.timeVector,
+             deaths, label='deaths if R0=1 at day=%d' % tInt1)
 
     beta2 = np.zeros(nSteps)
-    beta2[:37] = 0.6
-    beta2[37:] = 0.3
-    gamma2 = 0.3
-    system2 = simple_sir.SimpleSIR(pop, 1, 0, beta2, 1 / gamma2, nSteps)
+    tInt2 = 40
+    beta2[:tInt2] = 0.481
+    beta2[tInt2:] = 0.192
+    gamma2 = 0.192
+    system2 = simple_sir.SimpleSIR(pop, 1, 0, beta2, 1 / gamma2,
+                                   nSteps, t0=delayModel)
     system2.evolveSystem()
-
-    beta3 = 0.6
-    gamma3 = 0.3
-    system3 = simple_sir.SimpleSIR(pop, 1, 0, beta3, 1 / gamma3, nSteps)
-    system3.evolveSystem()
-
-    cfr = 0.03
-    deaths = cfr * system.timeSeries.recoveredWithImmunity
-    plt.plot(deaths, label='deaths if R0=0 at day=30')
     deaths2 = cfr * system2.timeSeries.recoveredWithImmunity
-    plt.plot(deaths2, label='deaths if R0=0 at day=37')
-    deaths3 = cfr * system3.timeSeries.recoveredWithImmunity
-    plt.plot(deaths3, label='deaths no action')
+    plt.plot(system2.timeSeries.timeVector,
+             deaths2, label='deaths if R0=1 at day=%d' % tInt2)
 
-    plt.plot(deHd + delayModel, deH, '.-', label='deaths Hubei')
-    plt.plot(deId + delayModel, deI, '.-', label='deaths Italy')
+    beta3 = 0.481
+    gamma3 = 0.192
+    system3 = simple_sir.SimpleSIR(pop, 1, 0, beta3, 1 / gamma3,
+                                   nSteps, t0=delayModel)
+    system3.evolveSystem()
+    deaths3 = cfr * system3.timeSeries.recoveredWithImmunity
+    plt.plot(system3.timeSeries.timeVector,
+             deaths3, label='deaths no action')
+
+    plt.plot(deHd, deH, '.-', label='deaths Hubei')
+    plt.plot(deId, deI, '.-',
+             linewidth=2,
+             markersize=12,
+             label='deaths Italy')
     # plt.plot(coHd + delayModel, coH, '.-', label='confirmed Hubei')
     # plt.plot(coId + delayModel, coI, '.-', label='confirmed Italy')
     plt.ylim(10,)
+    plt.xlim(20, 75)
     plt.xlabel(strdates)
     plt.legend()
 

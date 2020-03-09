@@ -71,7 +71,7 @@ class SimpleSIR(object):
 
     def __init__(self, susceptibles=90, infectives=10, immunes=0,
                  contact_rate=0.3, average_infection_period=10,
-                 nSteps=100.):
+                 nSteps=100., t0=0):
         self._nSteps = nSteps
         self._population = Population(susceptibles, infectives, immunes)
         if np.isscalar(contact_rate):
@@ -87,6 +87,7 @@ class SimpleSIR(object):
 
         self._dt = 1
         self._nSubSteps = 10
+        self._t0 = t0
 
         self._timeSeries = PopulationTimeSeries()
 
@@ -150,7 +151,8 @@ class SimpleSIR(object):
 
     def evolveSystem(self):
         for i in np.arange(self._nSteps):
-            self._timeSeries.append(self.currentPopulation, self._dt * i)
+            self._timeSeries.append(self.currentPopulation,
+                                    self._dt * i + self._t0)
             self._singleStep(i)
 
     def plot(self, susceptibles=True, infectives=True, recovered=True,
