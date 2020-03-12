@@ -116,6 +116,10 @@ class SimpleSIR(object):
         return self._beta / self._gamma
 
     @property
+    def R0(self):
+        return self.basicReproductionNumber
+
+    @property
     def forceOfInfection(self):
         return self._beta * self._timeSeries.infectives / \
             self._timeSeries.totalPopulation
