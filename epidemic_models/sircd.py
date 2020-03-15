@@ -95,7 +95,7 @@ class SIRCD(object):
 
     N = S + I + R
     dS = -beta S I / N
-    dC = epsilon dS
+    dC = -epsilon dS
     dI = dS - gamma I
     dR = gamma I
     dD = delta dR
@@ -174,11 +174,6 @@ class SIRCD(object):
     @property
     def tau(self):
         return 1 / (self._beta - self._gamma)
-
-    @property
-    def delayRecoveredInfected(self):
-        return -np.log(self.basicReproductionNumber - 1) * \
-            self.exponentialTimeConstant
 
     def timeToIncreaseByFactor(self, factor):
         return self.exponentialTimeConstant * np.log(factor)
