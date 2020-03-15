@@ -168,32 +168,19 @@ class DpcCovid():
     UMBRIA = "Umbria"
     VALLE_DI_AOSTA = "Valle d'Aosta"
     VENETO = "Veneto"
+    ITALIA = "Italia"
 
     def __init__(self, denominazione_regione):
-        self._all = self.load_csv()
-        self._filter = \
-            self._all['denominazione_regione'] == denominazione_regione
-        self._data = self._all[self._filter]
-
-#         self.codice_regione = id_state
-#         self.denominazione_regione = country
-#         self.lat = lat
-#         self.long = long
-#         self.terapia_intensiva = terapia_intensiva
-#         self.totale_ospedalizzati = totale_ospedalizzati
-#         self.isolamento_domiciliare = isolamento_domiciliare
-#         self.totale_attualmente_positivi = totale_attualmente_positivi
-#         self.nuovi_attualmente_positivi = nuovi_attualmente_positivi
-#         self.dimessi_guariti = dimessi_guariti
-#         self.deceduti = deceduti
-#         self.totale_casi = totale_casi
-#         self.tamponi = tamponi
+        if denominazione_regione == self.ITALIA:
+            self._data = self.load_csv_italia()
+        else:
+            self._all = self.load_csv_regioni()
+            self._filter = \
+                self._all['denominazione_regione'] == denominazione_regione
+            self._data = self._all[self._filter]
 
     def stato(self):
         return self._filteredData(self.STATO)
-
-#         self.codice_regione = id_state
-#         self.denominazione_regione = country
 
     @property
     def codice_regione(self):
@@ -213,7 +200,9 @@ class DpcCovid():
 
     @property
     def data(self):
-        return self._filteredData(self.DATA)
+        dd = self._filteredData(self.DATA)
+        return np.array([datetime.datetime.strptime(
+            d, '%Y-%m-%d %H:%M:%S') for d in dd])
 
     @property
     def ricoverati_con_sintomi(self):
@@ -256,28 +245,14 @@ class DpcCovid():
         return self._filteredData(self.TAMPONI)
 
     def _filteredData(self, what):
-        return self._data[what]
-
-#     def filter_codice_regione(self, codice_regione):
-#         if codice_regione is None:
-#             self._filter = None
-#         else:
-#             self._filter = self._all['codice_regione'] == codice_regione
-#         return self
-# 
-#     def filter_denominazione_regione(self, denominazione_regione):
-#         if denominazione_regione is None:
-#             self._filter = None
-#         else:
-#             self._filter = self._all['denominazione_regione'] == denominazione_regione
-#         return self
+        return self._data[what].values
 
     @property
     def days(self):
         jan1 = datetime.datetime(2020, 1, 1, 0, 0)
-        return np.array([(k - jan1).days for k in self.dates])
+        return np.array([(k - jan1).days for k in self.data])
 
-    def load_csv(self):
+    def load_csv_regioni(self):
         rootDir = dataRootDir()
         filename = os.path.join(rootDir,
                                 'pcm-dpc',
@@ -286,3 +261,11 @@ class DpcCovid():
                                 'dpc-covid19-ita-regioni.csv')
         return pd.read_csv(filename)
 
+    def load_csv_italia(self):
+        rootDir = dataRootDir()
+        filename = os.path.join(rootDir,
+                                'pcm-dpc',
+                                'COVID-19',
+                                'dati-andamento-nazionale',
+                                'dpc-covid19-ita-andamento-nazionale.csv')
+        return pd.read_csv(filename)

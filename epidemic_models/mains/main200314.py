@@ -2,7 +2,7 @@
 from epidemic_models import sircd
 
 import matplotlib.pyplot as plt
-from epidemic_models.restore_data import CSSECovid
+from epidemic_models.restore_data import CSSECovid, DpcCovid
 
 
 def plotEurope():
@@ -58,3 +58,7 @@ def plotEurope():
     plt.xlabel(csse.string_dates())
     plt.legend()
 
+
+def plotRegioni():
+    dLomb = DpcCovid(DpcCovid.LOMBARDIA)
+    dTosc = DpcCovid(DpcCovid.TOSCANA)

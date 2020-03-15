@@ -27,6 +27,7 @@ git clone https://github.com/pcm-dpc/COVID-19
 ```
 
 This package uses data from dati-regioni/dpc-covid19-ita-regioni.csv
+and from dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv
 
 
 ## Daily Update
