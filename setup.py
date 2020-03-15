@@ -19,7 +19,7 @@ setup(name='epidemic_models',
                 'epidemic_models.mains'
                 ],
       install_requires=["numpy",
-                        "openpyxl",
+                        "pandas",
                         ],
       package_data={
           'epidemic_models': ['data/*'],

@@ -33,10 +33,10 @@ def main():
     delayK = 35
     strdates = 'Days (Hubei from Jan1, Italy from Feb6)'
 
-    deH, coH, reH, daH = _restoreCountry('Hubei/Mainland China', delayH)
+    deH, coH, reH, daH = _restoreCountry('Hubei/China', delayH)
     deI, coI, reI, daI = _restoreCountry('Italy', delayI)
-    deF, coF, reF, daF = _restoreCountry('France', delayF)
-    deR, coR, reR, daR = _restoreCountry('Iran (Islamic Republic of)', delayR)
+    deF, coF, reF, daF = _restoreCountry('France/France', delayF)
+    deR, coR, reR, daR = _restoreCountry('Iran', delayR)
     deS, coS, reS, daS = _restoreCountry('Spain', delayS)
     deK, coK, reK, daK = _restoreCountry('Republic of Korea', delayK)
 
@@ -128,8 +128,8 @@ def plotGuido():
     strdates = 'Days (Hubei from Jan1, Italy from Feb6)'
 
     de = restore_data.restoreCSSEDeath()
-    deH = de['Hubei/Mainland China'].values
-    deHd = de['Hubei/Mainland China'].days - delayH
+    deH = de['Hubei/China'].values
+    deHd = de['Hubei/China'].days - delayH
 
     pop = 6e7
     nSteps = 100
@@ -162,20 +162,20 @@ def delays():
     delayK = 35
     strdates = 'Days (Hubei from Jan1, Italy from Feb6)'
 
-    deH, coH, reH, daH = _restoreCountry('Hubei/Mainland China', delayH)
+    deH, coH, reH, daH = _restoreCountry('Hubei/China', delayH)
     deI, coI, reI, daI = _restoreCountry('Italy', delayI)
 #    deF, coF, reF, daF = _restoreCountry('France', delayF)
 #    deR, coR, reR, daR = _restoreCountry('Iran (Islamic Republic of)', delayR)
 #    deS, coS, reS, daS = _restoreCountry('Spain', delayS)
-    deK, coK, reK, daK = _restoreCountry('Republic of Korea', delayK)
+#    deK, coK, reK, daK = _restoreCountry('Republic of Korea', delayK)
 
     pop = 6e7
     nSteps = 100
     beta0 = 0.48
     gamma0 = 0.16
-    epsilon = 0.0005
-    cfr = 0.00005
-    delayModel = -21
+    epsilon = 0.005
+    cfr = 0.0005
+    delayModel = -14
 
     system = simple_sir.SimpleSIR(pop, 1, 0, beta0, 1 / gamma0,
                                   nSteps, t0=delayModel)
@@ -197,8 +197,8 @@ def delays():
     plt.plot(daH, deH, '.-', label='deaths Hubei')
     plt.plot(daI, coI, '.-', label='confirmed Italy')
     plt.plot(daI, deI, '.-', label='deaths Italy')
-    plt.plot(daK, coK, '.-', label='confirmed Korea')
-    plt.plot(daK, deK, '.-', label='deaths Korea')
+#    plt.plot(daK, coK, '.-', label='confirmed Korea')
+#    plt.plot(daK, deK, '.-', label='deaths Korea')
     plt.ylim(1,)
     plt.xlim(10, 75)
     plt.xlabel(strdates)
