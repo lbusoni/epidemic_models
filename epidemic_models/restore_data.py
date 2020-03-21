@@ -86,10 +86,12 @@ class CSSECovid():
     DELAY_ITALY = 36
     DELAY_IRAN = 34
     DELAY_HUBEI = 0
-    DELAY_FRANCE = 45
+    DELAY_FRANCE = 46
     DELAY_SPAIN = 45
     DELAY_SOUTH_KOREA = 35
-    DELAY_NETHERLANDS = 50
+    DELAY_NETHERLANDS = 52
+    DELAY_UK = 50
+    DELAY_GERMANY = 54
 
     def __init__(self):
         self._de = restoreCSSEDeath()
@@ -97,7 +99,7 @@ class CSSECovid():
         self._re = restoreCSSERecovered()
 
     def string_dates(self):
-        return 'Days [hub (Jan1), it(+36), fr(+45), es(45), ne(50)]'
+        return 'Days [hub (Jan1), it(+36), fr(+46), es(+45), ne(+52), uk(+50), de(+54)]'
 
     def restoreCSSECountry(self, name, delay_date=0):
         assert np.array_equal(self._de[name].days, self._co[name].days)
@@ -125,8 +127,20 @@ class CSSECovid():
         return self.restoreCSSECountry('Spain', self.DELAY_SPAIN)
 
     def restoreNetherlands(self):
-        return self.restoreCSSECountry('Netherlands',
+        return self.restoreCSSECountry('Netherlands/Netherlands',
                                        self.DELAY_NETHERLANDS)
+
+    def restoreUK(self):
+        return self.restoreCSSECountry('United Kingdom/United Kingdom',
+                                       self.DELAY_UK)
+
+    def restoreGermany(self):
+        return self.restoreCSSECountry('Germany',
+                                       self.DELAY_GERMANY)
+
+    def restoreSouthKorea(self):
+        return self.restoreCSSECountry('Korea, South',
+                                       self.DELAY_SOUTH_KOREA)
 
 
 class DpcCovid():
@@ -141,7 +155,7 @@ class DpcCovid():
     TOTALE_OSPEDALIZZATI = 'totale_ospedalizzati'
     ISOLAMENTO_DOMICILIARE = 'isolamento_domiciliare'
     TOTALE_ATTUALMENTE_POSITIVI = 'totale_attualmente_positivi'
-    NUOVI_ATTUALEMENTE_POSITIVI = 'nuovi_attualemente_positivi'
+    NUOVI_ATTUALMENTE_POSITIVI = 'nuovi_attualmente_positivi'
     DIMESSI_GUARITI = 'dimessi_guariti'
     DECEDUTI = 'deceduti'
     TOTALE_CASI = 'totale_casi'
@@ -168,83 +182,100 @@ class DpcCovid():
     UMBRIA = "Umbria"
     VALLE_DI_AOSTA = "Valle d'Aosta"
     VENETO = "Veneto"
-    ITALIA = "Italia"
+
+    ALL = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, EMILIA_ROMAGNA,
+           FRIULI_VENEZIA_GIULIA, LAZIO, LIGURIA, LOMBARDIA, MARCHE,
+           MOLISE, PIEMONTE, PROVINCIA_AUTONOMA_DI_BOLZANO,
+           PROVINCIA_AUTONOMA_DI_TRENTO, PUGLIA, SARDEGNA, SICILIA,
+           TOSCANA, UMBRIA, VALLE_DI_AOSTA, VENETO]
+
+    NORD = [EMILIA_ROMAGNA,
+            FRIULI_VENEZIA_GIULIA, LIGURIA, LOMBARDIA,
+            PIEMONTE, PROVINCIA_AUTONOMA_DI_BOLZANO,
+            PROVINCIA_AUTONOMA_DI_TRENTO, VALLE_DI_AOSTA, VENETO]
+
+    CENTRO = [LAZIO, MARCHE, TOSCANA, UMBRIA]
+
+    SUD = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, MOLISE, PUGLIA]
+
+    ISOLE = [SARDEGNA, SICILIA]
 
     def __init__(self, denominazione_regione):
-        if denominazione_regione == self.ITALIA:
-            self._data = self.load_csv_italia()
-        else:
-            self._all = self.load_csv_regioni()
-            self._filter = \
-                self._all['denominazione_regione'] == denominazione_regione
-            self._data = self._all[self._filter]
+        self._all = self.load_csv_regioni()
+        self._filter = \
+            self._all[self.DENOMINAZIONE_REGIONE].isin(denominazione_regione)
+        self._data = self._all[self._filter].groupby(self.DATA).sum()
 
+    @property
+    def data_frame(self):
+        return self._data
+
+    @property
     def stato(self):
-        return self._filteredData(self.STATO)
+        return self.select(self.STATO)
 
     @property
     def codice_regione(self):
-        return self._filteredData(self.CODICE_REGIONE)
+        return self.select(self.CODICE_REGIONE)
 
     @property
     def denominazione_regione(self):
-        return self._filteredData(self.DENOMINAZIONE_REGIONE)
+        return self.select(self.DENOMINAZIONE_REGIONE)
 
     @property
     def latitudine(self):
-        return self._filteredData(self.LATITUDINE)
+        return self.select(self.LATITUDINE)
 
     @property
     def longitudine(self):
-        return self._filteredData(self.LONGITUDINE)
+        return self.select(self.LONGITUDINE)
 
     @property
     def data(self):
-        dd = self._filteredData(self.DATA)
         return np.array([datetime.datetime.strptime(
-            d, '%Y-%m-%d %H:%M:%S') for d in dd])
+            d, '%Y-%m-%d %H:%M:%S') for d in self._data.index])
 
     @property
     def ricoverati_con_sintomi(self):
-        return self._filteredData(self.RICOVERATI_CON_SINTOMI)
+        return self.select(self.RICOVERATI_CON_SINTOMI)
 
     @property
     def terapia_intensiva(self):
-        return self._filteredData(self.TERAPIA_INTENSIVA)
+        return self.select(self.TERAPIA_INTENSIVA)
 
     @property
     def totale_ospedalizzati(self):
-        return self._filteredData(self.TOTALE_OSPEDALIZZATI)
+        return self.select(self.TOTALE_OSPEDALIZZATI)
 
     @property
     def isolamento_domiciliare(self):
-        return self._filteredData(self.ISOLAMENTO_DOMICILIARE)
+        return self.select(self.ISOLAMENTO_DOMICILIARE)
 
     @property
     def totale_attualmente_positivi(self):
-        return self._filteredData(self.TOTALE_ATTUALMENTE_POSITIVI)
+        return self.select(self.TOTALE_ATTUALMENTE_POSITIVI)
 
     @property
     def nuovi_attualmente_positivi(self):
-        return self._filteredData(self.TOTALE_ATTUALMENTE_POSITIVI)
+        return self.select(self.NUOVI_ATTUALMENTE_POSITIVI)
 
     @property
     def dimessi_guariti(self):
-        return self._filteredData(self.DIMESSI_GUARITI)
+        return self.select(self.DIMESSI_GUARITI)
 
     @property
     def deceduti(self):
-        return self._filteredData(self.DECEDUTI)
+        return self.select(self.DECEDUTI)
 
     @property
     def totale_casi(self):
-        return self._filteredData(self.TOTALE_CASI)
+        return self.select(self.TOTALE_CASI)
 
     @property
     def tamponi(self):
-        return self._filteredData(self.TAMPONI)
+        return self.select(self.TAMPONI)
 
-    def _filteredData(self, what):
+    def select(self, what):
         return self._data[what].values
 
     @property
