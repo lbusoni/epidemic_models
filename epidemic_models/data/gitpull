@@ -1,0 +1,8 @@
+#/bin/bash
+cd csse/COVID-19
+git pull
+cd -
+cd pcm-dpc/COVID-19
+git pull
+cd -
+
