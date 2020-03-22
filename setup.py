@@ -20,6 +20,7 @@ setup(name='epidemic_models',
                 ],
       install_requires=["numpy",
                         "pandas",
+                        "scipy",
                         ],
       package_data={
           'epidemic_models': ['data/*'],

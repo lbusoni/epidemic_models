@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import integrate
 
 
 class Population(object):
@@ -55,6 +56,15 @@ class PopulationTimeSeries():
         self._RHist = np.append(self._RHist, population.recoveredWithImmunity)
         self._CHist = np.append(self._CHist, population.confirmed)
         self._DHist = np.append(self._DHist, population.deaths)
+
+    def add(self, time, susceptibles, infectives,
+            recovered, confirmed, deaths):
+        self._timeHist = time
+        self._SHist = susceptibles
+        self._IHist = infectives
+        self._RHist = recovered
+        self._CHist = confirmed
+        self._DHist = deaths
 
     @property
     def susceptibles(self):
@@ -203,34 +213,37 @@ class SIRCD(object):
         '''
         return self.tau * np.log(self._gamma * self.tau)
 
-    def _singleStep(self, step):
-        cp = self.currentPopulation
-        Su = cp.susceptibles
-        In = cp.infectives
-        Re = cp.recoveredWithImmunity
-        Co = cp.confirmed
-        De = cp.deaths
-        Nu = cp.totalPopulation
-        dt = self._dt / self._nSubSteps
-        for _ in np.arange(self._nSubSteps):
-            dS = -self._beta[step] * Su * In / Nu
-            dR = self._gamma[step] * In
-            dI = -dS - dR
-            dC = -self._epsilon[step] * dS
-            dD = self._delta[step] * dR
-            Su = Su + dS * dt
-            In = In + dI * dt
-            Re = Re + dR * dt
-            Co = Co + dC * dt
-            De = De + dD * dt
-        self._population = Population(np.clip(Su, 0, Nu),
-                                      In, Re, Co, De)
-
     def evolveSystem(self):
-        for i in np.arange(self._nSteps):
-            self._timeSeries.append(self.currentPopulation,
-                                    self._dt * i + self._t0)
-            self._singleStep(i)
+        t_start = 0
+        t_end = self._nSteps
+        t_inc = self._dt
+        initial_values = (self._population.susceptibles,
+                          self._population.infectives,
+                          self._population.recoveredWithImmunity,
+                          self._population.confirmed,
+                          self._population.deaths)
+        t_range = np.arange(t_start, t_end + t_inc, t_inc)
+        t_span = (t_start, t_end)
+        res = integrate.solve_ivp(
+            self._diff_eqs, t_span, initial_values, t_eval=t_range)
+        assert res.success is True
+        self._timeSeries.add(res.t, res.y[0], res.y[1], res.y[2],
+                             res.y[3], res.y[4])
+
+    def _diff_eqs(self, t, values):
+        Y = np.zeros((5))  # (S,I,R,C,D)
+        V = values
+        tV = np.clip(int(t), 0, self._nSteps - 1)
+        N = self._population.totalPopulation
+        dS = -self._beta[tV] * V[0] * V[1] / N
+        dR = self._gamma[tV] * V[1]
+
+        Y[0] = dS
+        Y[1] = -dS - dR
+        Y[2] = dR
+        Y[3] = -self._epsilon[tV] * dS
+        Y[4] = self._delta[tV] * dR
+        return Y
 
     def plot(self, susceptibles=True, infectives=True, recovered=True,
              confirmed=True, deaths=True, newFigure=True):

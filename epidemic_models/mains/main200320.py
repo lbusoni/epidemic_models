@@ -88,14 +88,14 @@ def plotTalkXiongLin():
     deH, coH, reH, daH = csse.restoreHubei()
     deI, coI, reI, daI = csse.restoreItaly()
 
-    pop = 6e7
+    pop = 11e6
     nSteps = 100
     epsilon = 0.4
     cfr = 0.03
     delayModel = -1
 
     Rt = np.array([3.88, 1.26, 0.32])
-    gamma = 0.46
+    gamma = 0.16
     betat = Rt * gamma
     tInt1 = 23 - delayModel
     tInt2 = 33 - delayModel
@@ -105,7 +105,7 @@ def plotTalkXiongLin():
     beta[tInt1:tInt2] = betat[1]
     beta[tInt2:] = betat[2]
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectives=.5,
                           contact_rate=beta,
                           average_infection_period=1 / gamma,
                           epsilon=epsilon,
@@ -114,19 +114,19 @@ def plotTalkXiongLin():
                           t0=delayModel)
     system3.evolveSystem()
     system3.plot()
-    plt.plot(system3.timeSeries.timeVector,
-             system3.timeSeries.deaths, color='C2', label='SIRCD model')
+#    plt.plot(system3.timeSeries.timeVector,
+#             system3.timeSeries.deaths, color='C2', label='SIRCD model')
 
     plt.plot(daH, deH, '.-', color='C3', label='deaths Hubei')
     plt.plot(daH, coH, '+-', color='C3', label='confirmed Hubei')
-    plt.plot(daI, deI, '.-',
-             linewidth=2,
-             markersize=12,
-             color='C4',
-             label='deaths Italy')
+#     plt.plot(daI, deI, '.-',
+#              linewidth=2,
+#              markersize=12,
+#              color='C4',
+#              label='deaths Italy')
     plt.plot([], [], ' ', label="data at 20 Mar 2020")
-    plt.ylim(10, 1e4)
-    plt.xlim(20, 60)
+    # plt.ylim(10, 1e4)
+    # plt.xlim(20, 60)
     plt.xlabel(strdates)
     plt.title('')
     plt.legend()
