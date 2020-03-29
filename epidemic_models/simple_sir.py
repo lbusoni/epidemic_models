@@ -16,11 +16,11 @@ class Population(object):
         return self._S
 
     @property
-    def infectives(self):
+    def infectious(self):
         return self._I
 
     @property
-    def recoveredWithImmunity(self):
+    def recovered_with_immunity(self):
         return self._R
 
     @property
@@ -39,19 +39,19 @@ class PopulationTimeSeries():
     def append(self, population, time):
         self._timeHist = np.append(self._timeHist, time)
         self._SHist = np.append(self._SHist, population.susceptibles)
-        self._IHist = np.append(self._IHist, population.infectives)
-        self._RHist = np.append(self._RHist, population.recoveredWithImmunity)
+        self._IHist = np.append(self._IHist, population.infectious)
+        self._RHist = np.append(self._RHist, population.recovered_with_immunity)
 
     @property
     def susceptibles(self):
         return self._SHist
 
     @property
-    def infectives(self):
+    def infectious(self):
         return self._IHist
 
     @property
-    def recoveredWithImmunity(self):
+    def recovered_with_immunity(self):
         return self._RHist
 
     @property
@@ -64,16 +64,16 @@ class PopulationTimeSeries():
 
     @property
     def justInfected(self):
-        return np.append(0, np.diff(self.recoveredWithImmunity))
+        return np.append(0, np.diff(self.recovered_with_immunity))
 
 
 class SimpleSIR(object):
 
-    def __init__(self, susceptibles=90, infectives=10, immunes=0,
+    def __init__(self, susceptibles=90, infectious=10, immunes=0,
                  contact_rate=0.3, average_infection_period=10,
                  nSteps=100., t0=0):
         self._nSteps = nSteps
-        self._population = Population(susceptibles, infectives, immunes)
+        self._population = Population(susceptibles, infectious, immunes)
         if np.isscalar(contact_rate):
             self._beta = np.ones(self._nSteps) * contact_rate
         else:
@@ -121,7 +121,7 @@ class SimpleSIR(object):
 
     @property
     def forceOfInfection(self):
-        return self._beta * self._timeSeries.infectives / \
+        return self._beta * self._timeSeries.infectious / \
             self._timeSeries.totalPopulation
 
     @property
@@ -139,8 +139,8 @@ class SimpleSIR(object):
     def _singleStep(self, step):
         cp = self.currentPopulation
         Su = cp.susceptibles
-        In = cp.infectives
-        Re = cp.recoveredWithImmunity
+        In = cp.infectious
+        Re = cp.recovered_with_immunity
         Nu = cp.totalPopulation
         dt = self._dt / self._nSubSteps
         for _ in np.arange(self._nSubSteps):
@@ -159,7 +159,7 @@ class SimpleSIR(object):
                                     self._dt * i + self._t0)
             self._singleStep(i)
 
-    def plot(self, susceptibles=True, infectives=True, recovered=True,
+    def plot(self, susceptibles=True, infectious=True, recovered=True,
              newFigure=True):
 
         ts = self._timeSeries
@@ -167,11 +167,11 @@ class SimpleSIR(object):
             plt.figure()
         if susceptibles:
             plt.plot(ts.timeVector, ts.susceptibles, label='Susceptibles')
-        if infectives:
-            plt.plot(ts.timeVector, ts.infectives, label='Infectives')
+        if infectious:
+            plt.plot(ts.timeVector, ts.infectious, label='Infectives')
         if recovered:
             plt.plot(ts.timeVector,
-                     ts.recoveredWithImmunity,
+                     ts.recovered_with_immunity,
                      label='Recovered with Immunity')
         # plt.plot(ts.timeVector, ts.justInfected, label='Just Infected')
         # plt.plot(ts.timeVector, self.forceOfInfection(), label='Force of Infection')
@@ -179,7 +179,7 @@ class SimpleSIR(object):
             self.contactRate.min(), self.contactRate.max(),
             self.averageInfectiousPeriod.min(),
             self.averageInfectiousPeriod.max(),
-            ts.infectives.max())
+            ts.infectious.max())
         plt.title(t)
         plt.legend()
         plt.grid(True)
@@ -187,10 +187,10 @@ class SimpleSIR(object):
         plt.semilogy()
 
 
-def main(susceptibles=90, infectives=10, immunes=0,
+def main(susceptibles=90, infectious=10, immunes=0,
          contact_rate=0.3, average_infection_period=10,
          nSteps=100.):
-    system = SimpleSIR(susceptibles, infectives, immunes,
+    system = SimpleSIR(susceptibles, infectious, immunes,
                        contact_rate, average_infection_period,
                        nSteps)
     system.evolveSystem()

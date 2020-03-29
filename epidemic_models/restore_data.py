@@ -7,6 +7,10 @@ import csv
 import datetime
 
 
+def diff_from_zero(v):
+    return np.diff(np.hstack(([0.], v)))
+
+
 class CCSECovidTimeSeries():
 
     def __init__(self, key, state, country, lat, long, values, dates):
@@ -54,7 +58,7 @@ def restoreCSSEDeath():
                             'COVID-19',
                             'csse_covid_19_data',
                             'csse_covid_19_time_series',
-                            'time_series_19-covid-Deaths.csv')
+                            'time_series_covid19_deaths_global.csv')
     return _restoreGenericCSSE(filename)
 
 
@@ -66,19 +70,7 @@ def restoreCSSEConfirmed():
                             'COVID-19',
                             'csse_covid_19_data',
                             'csse_covid_19_time_series',
-                            'time_series_19-covid-Confirmed.csv')
-    return _restoreGenericCSSE(filename)
-
-
-def restoreCSSERecovered():
-
-    rootDir = dataRootDir()
-    filename = os.path.join(rootDir,
-                            'csse',
-                            'COVID-19',
-                            'csse_covid_19_data',
-                            'csse_covid_19_time_series',
-                            'time_series_19-covid-Recovered.csv')
+                            'time_series_covid19_confirmed_global.csv')
     return _restoreGenericCSSE(filename)
 
 
@@ -96,42 +88,38 @@ class CSSECovid():
     def __init__(self):
         self._de = restoreCSSEDeath()
         self._co = restoreCSSEConfirmed()
-        self._re = restoreCSSERecovered()
 
     def string_dates(self):
         return 'Days [hub (Jan1), it(+36), fr(+46), es(+45), ne(+52), uk(+50), de(+54)]'
 
     def restoreCSSECountry(self, name, delay_date=0):
         assert np.array_equal(self._de[name].days, self._co[name].days)
-        assert np.array_equal(self._de[name].days, self._re[name].days)
         deaths = self._de[name].values
         confirmed = self._co[name].values
-        recovered = self._re[name].values
         days = self._de[name].days - delay_date
-        return deaths, confirmed, recovered, days
+        return deaths, confirmed, days
 
     def restoreItaly(self):
-        de, co, re, da = self.restoreCSSECountry('Italy', self.DELAY_ITALY)
+        de, co, da = self.restoreCSSECountry('Italy', self.DELAY_ITALY)
         de[50] = 1016
         co[50] = 15113
-        re[50] = 1258
-        return de, co, re, da
+        return de, co, da
 
     def restoreHubei(self):
         return self.restoreCSSECountry('Hubei/China', self.DELAY_HUBEI)
 
     def restoreFrance(self):
-        return self.restoreCSSECountry('France/France', self.DELAY_FRANCE)
+        return self.restoreCSSECountry('France', self.DELAY_FRANCE)
 
     def restoreSpain(self):
         return self.restoreCSSECountry('Spain', self.DELAY_SPAIN)
 
     def restoreNetherlands(self):
-        return self.restoreCSSECountry('Netherlands/Netherlands',
+        return self.restoreCSSECountry('Netherlands',
                                        self.DELAY_NETHERLANDS)
 
     def restoreUK(self):
-        return self.restoreCSSECountry('United Kingdom/United Kingdom',
+        return self.restoreCSSECountry('United Kingdom',
                                        self.DELAY_UK)
 
     def restoreGermany(self):
@@ -144,6 +132,19 @@ class CSSECovid():
 
 
 class DpcCovid():
+    '''
+    ospedalizzati = ricoverati_con_sintomi + terapia_intensiva
+    totale_attualmente_positivi = ospedalizzati + isolamento_domiciliare
+    nuovi_attualmente_positivi = diff(totale_attualmente_positivi)
+    totale_casi = totale_attualmente_positivi + dimessi_guariti + deceduti
+
+    Nota: nuovi_attualmente_positivi non serve a niente
+
+    Aggiungo:
+    nuovi_contagiati = diff(totale_casi) corrisponde al numero di persone
+    passate da sani a positivi oggi, cioè al numero di nuove contagi
+    '''
+
     DENOMINAZIONE_REGIONE = 'denominazione_regione'
     CODICE_REGIONE = 'codice_regione'
     STATO = 'stato'
@@ -160,6 +161,10 @@ class DpcCovid():
     DECEDUTI = 'deceduti'
     TOTALE_CASI = 'totale_casi'
     TAMPONI = 'tamponi'
+
+    NUOVI_CONTAGIATI = 'nuovi_contagiati'
+    NUOVI_DECEDUTI = 'nuovi_deceduti'
+    NUOVI_DIMESSI_GUARITI = 'nuovi_dimessi_guariti'
 
     ABRUZZO = 'Abruzzo'
     BASILICATA = 'Basilicata'
@@ -202,6 +207,8 @@ class DpcCovid():
 
     def __init__(self, denominazione_regione):
         self._all = self.load_csv_regioni()
+        if not isinstance(denominazione_regione, list):
+            denominazione_regione = (denominazione_regione,)
         self._filter = \
             self._all[self.DENOMINAZIONE_REGIONE].isin(denominazione_regione)
         self._data = self._all[self._filter].groupby(self.DATA).sum()
@@ -233,7 +240,7 @@ class DpcCovid():
     @property
     def data(self):
         return np.array([datetime.datetime.strptime(
-            d, '%Y-%m-%d %H:%M:%S') for d in self._data.index])
+            d, '%Y-%m-%dT%H:%M:%S') for d in self._data.index])
 
     @property
     def ricoverati_con_sintomi(self):
@@ -275,8 +282,27 @@ class DpcCovid():
     def tamponi(self):
         return self.select(self.TAMPONI)
 
+    @property
+    def nuovi_contagiati(self):
+        return diff_from_zero(self.totale_casi)
+
+    @property
+    def nuovi_deceduti(self):
+        return diff_from_zero(self.deceduti)
+
+    @property
+    def nuovi_dimessi_guariti(self):
+        return diff_from_zero(self.dimessi_guariti)
+
     def select(self, what):
-        return self._data[what].values
+        if what == self.NUOVI_CONTAGIATI:
+            return self.nuovi_contagiati
+        elif what == self.NUOVI_DECEDUTI:
+            return self.nuovi_deceduti
+        elif what == self.NUOVI_DIMESSI_GUARITI:
+            return self.nuovi_dimessi_guariti
+        else:
+            return self._data[what].values
 
     @property
     def days(self):

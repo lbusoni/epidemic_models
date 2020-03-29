@@ -70,7 +70,7 @@ def main():
     system.plot()
 
     cfr = 0.03
-    deaths = cfr * system.timeSeries.recoveredWithImmunity
+    deaths = cfr * system.timeSeries.recovered_with_immunity
     plt.plot(deaths, label='deaths (CFR=%g)' % (cfr))
 
     plt.plot(deHd + 6, deH, '.-', label='deaths Hubei')

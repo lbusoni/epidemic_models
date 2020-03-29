@@ -19,11 +19,11 @@ class Population(object):
         return self._S
 
     @property
-    def infectives(self):
+    def infectious(self):
         return self._I
 
     @property
-    def recoveredWithImmunity(self):
+    def recovered_with_immunity(self):
         return self._R
 
     @property
@@ -52,16 +52,16 @@ class PopulationTimeSeries():
     def append(self, population, time):
         self._timeHist = np.append(self._timeHist, time)
         self._SHist = np.append(self._SHist, population.susceptibles)
-        self._IHist = np.append(self._IHist, population.infectives)
-        self._RHist = np.append(self._RHist, population.recoveredWithImmunity)
+        self._IHist = np.append(self._IHist, population.infectious)
+        self._RHist = np.append(self._RHist, population.recovered_with_immunity)
         self._CHist = np.append(self._CHist, population.confirmed)
         self._DHist = np.append(self._DHist, population.deaths)
 
-    def add(self, time, susceptibles, infectives,
+    def add(self, time, susceptibles, infectious,
             recovered, confirmed, deaths):
         self._timeHist = time
         self._SHist = susceptibles
-        self._IHist = infectives
+        self._IHist = infectious
         self._RHist = recovered
         self._CHist = confirmed
         self._DHist = deaths
@@ -71,11 +71,11 @@ class PopulationTimeSeries():
         return self._SHist
 
     @property
-    def infectives(self):
+    def infectious(self):
         return self._IHist
 
     @property
-    def recoveredWithImmunity(self):
+    def recovered_with_immunity(self):
         return self._RHist
 
     @property
@@ -96,7 +96,7 @@ class PopulationTimeSeries():
 
     @property
     def justInfected(self):
-        return np.append(0, np.diff(self.recoveredWithImmunity))
+        return np.append(0, np.diff(self.recovered_with_immunity))
 
 
 class SIRCD(object):
@@ -116,13 +116,13 @@ class SIRCD(object):
     the R of SIR through a known proportional factor delta.
     '''
 
-    def __init__(self, susceptibles=90, infectives=10, immunes=0,
+    def __init__(self, susceptibles=90, infectious=10, immunes=0,
                  confirmed=0, deaths=0,
                  contact_rate=0.3, average_infection_period=10,
                  nSteps=100, t0=0, epsilon=.1, delta=.001):
         self._nSteps = int(nSteps)
         self._population = Population(
-            susceptibles, infectives, immunes, confirmed, deaths)
+            susceptibles, infectious, immunes, confirmed, deaths)
 
         self._beta = self._scalarArgs2Vectors(contact_rate)
         self._gamma = self._scalarArgs2Vectors(
@@ -174,7 +174,7 @@ class SIRCD(object):
 
     @property
     def forceOfInfection(self):
-        return self._beta * self._timeSeries.infectives / \
+        return self._beta * self._timeSeries.infectious / \
             self._timeSeries.totalPopulation
 
     @property
@@ -218,8 +218,8 @@ class SIRCD(object):
         t_end = self._nSteps
         t_inc = self._dt
         initial_values = (self._population.susceptibles,
-                          self._population.infectives,
-                          self._population.recoveredWithImmunity,
+                          self._population.infectious,
+                          self._population.recovered_with_immunity,
                           self._population.confirmed,
                           self._population.deaths)
         t_range = np.arange(t_start, t_end + t_inc, t_inc)
@@ -245,7 +245,7 @@ class SIRCD(object):
         Y[4] = self._delta[tV] * dR
         return Y
 
-    def plot(self, susceptibles=True, infectives=True, recovered=True,
+    def plot(self, susceptibles=True, infectious=True, recovered=True,
              confirmed=True, deaths=True, newFigure=True):
 
         ts = self._timeSeries
@@ -253,11 +253,11 @@ class SIRCD(object):
             plt.figure()
         if susceptibles:
             plt.plot(ts.timeVector, ts.susceptibles, label='Susceptibles')
-        if infectives:
-            plt.plot(ts.timeVector, ts.infectives, label='Infectives')
+        if infectious:
+            plt.plot(ts.timeVector, ts.infectious, label='Infectives')
         if recovered:
             plt.plot(ts.timeVector,
-                     ts.recoveredWithImmunity,
+                     ts.recovered_with_immunity,
                      label='Recovered with Immunity')
         if confirmed:
             plt.plot(ts.timeVector, ts.confirmed,
@@ -271,7 +271,7 @@ class SIRCD(object):
             self.contactRate.min(), self.contactRate.max(),
             self.averageInfectiousPeriod.min(),
             self.averageInfectiousPeriod.max(),
-            ts.infectives.max())
+            ts.infectious.max())
         plt.title(t)
         plt.legend()
         plt.grid(True)
@@ -279,11 +279,11 @@ class SIRCD(object):
         plt.semilogy()
 
 
-def main(susceptibles=99.9, infectives=.1, immunes=0,
+def main(susceptibles=99.9, infectious=.1, immunes=0,
          confirmed=0, deaths=0,
          contact_rate=0.3, average_infection_period=10,
          nSteps=100, epsilon=0.1, delta=0.001):
-    system = SIRCD(susceptibles, infectives, immunes, confirmed, deaths,
+    system = SIRCD(susceptibles, infectious, immunes, confirmed, deaths,
                    contact_rate, average_infection_period,
                    nSteps, epsilon, delta)
     system.evolveSystem()

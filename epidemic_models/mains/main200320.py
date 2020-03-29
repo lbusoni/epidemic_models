@@ -1,18 +1,19 @@
-from epidemic_models import simple_sir, restore_data, sircd
+from epidemic_models import simple_sir, restore_data, sircd, seirah
 
 import matplotlib.pyplot as plt
 import numpy as np
 from epidemic_models.restore_data import CSSECovid, DpcCovid
 from epidemic_models.utils.exponential_fitting import tau_evolution, \
     doubling_time
+from epidemic_models.utils import piecewise
 
 
 def plotFB():
     strdates = 'Days (Hub +Jan1, I +Feb6)'
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
-    deI, coI, reI, daI = csse.restoreItaly()
+    deH, coH, daH = csse.restoreHubei()
+    deI, coI, daI = csse.restoreItaly()
 
     pop = 6e7
     nSteps = 100
@@ -27,7 +28,7 @@ def plotFB():
     beta[:tInt2] = beta0
     beta[tInt2:] = 0.8 * gamma0
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon,
@@ -35,7 +36,7 @@ def plotFB():
                           nSteps=nSteps,
                           t0=delayModel)
     system3.evolveSystem()
-    system3.plot(susceptibles=False, infectives=False, recovered=False,
+    system3.plot(susceptibles=False, infectious=False, recovered=False,
                  confirmed=False, deaths=False)
     plt.plot(system3.timeSeries.timeVector,
              system3.timeSeries.deaths, color='C2', label='SIR model, R0=3')
@@ -77,6 +78,33 @@ def doublingTime(what):
     plt.grid()
 
 
+def plotRegione(who, what):
+    if not isinstance(who, list):
+        who = (who,)
+    region_data = [DpcCovid(w) for w in who]
+    data = [d.select(what) for d in region_data]
+    days = [d.days for d in region_data]
+
+    plt.figure()
+    for t, d, w in zip(days, data, who):
+        plt.plot(t, d, label=w)
+    plt.legend()
+    plt.grid()
+
+
+def doublingTimeRegione(who, what):
+    if not isinstance(who, list):
+        who = (who,)
+    region_data = [DpcCovid(w) for w in who]
+    taus = [tau_evolution(d, what) for d in region_data]
+
+    plt.figure()
+    for t, w in zip(taus, who):
+        plt.plot(t[0], doubling_time(t[1]), label=w)
+    plt.legend()
+    plt.grid()
+
+
 def plotTalkXiongLin():
     '''
     https://harvard.zoom.us/rec/play/v8Ytceqqqzs3GNzB4gSDB_59W9TsK6Ks13RI_6cLxB62BSUAOlumZeRAZLC7e1vif7xIyy6HL_uXyNHw?startTime=1584118874000
@@ -85,33 +113,43 @@ def plotTalkXiongLin():
     strdates = 'Days (Hub +Jan1, I +Feb6)'
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
-    deI, coI, reI, daI = csse.restoreItaly()
+    deH, coH, daH = csse.restoreHubei()
+    deI, coI, daI = csse.restoreItaly()
 
-    pop = 11e6
     nSteps = 100
-    epsilon = 0.4
-    cfr = 0.03
-    delayModel = -1
+    delayModel = 0
+    periods = np.array([10, 22, 32])
 
-    Rt = np.array([3.88, 1.26, 0.32])
-    gamma = 0.16
-    betat = Rt * gamma
-    tInt1 = 23 - delayModel
-    tInt2 = 33 - delayModel
+    S0 = 9999467
+    E0 = 346
+    I0 = 80
+    R0 = 0
+    A0 = 80
+    H0 = 27
+    beta = piecewise(periods, (1.75, 1.75, 0.58, 0.15), nSteps)
+    r = piecewise(periods, (0.19, 0.19, 0.22, 0.17), nSteps)
+    De = 5.2
+    Di = 2.3
+    Dh = 30
+    Dq = piecewise(periods, (10, 7, 5, 2), nSteps)
+    travellers = piecewise(periods, (500e3, 800e3, 0, 0), nSteps)
 
-    beta = np.zeros(nSteps)
-    beta[:tInt1] = betat[0]
-    beta[tInt1:tInt2] = betat[1]
-    beta[tInt2:] = betat[2]
-    system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=.5,
-                          contact_rate=beta,
-                          average_infection_period=1 / gamma,
-                          epsilon=epsilon,
-                          delta=cfr,
-                          nSteps=nSteps,
-                          t0=delayModel)
+    system3 = seirah.SEIRAH(susceptibles=S0,
+                            exposed=E0,
+                            infectious=I0,
+                            recovered=R0,
+                            unascertained=A0,
+                            hospitalized=H0,
+                            transmission_rate=beta,
+                            unscertained_transmission_rate_ratio=1,
+                            ascertainment_fraction=r,
+                            latent_period=De,
+                            infectious_period=Di,
+                            illness_to_hospitalization_period=Dq,
+                            hospitalization_period=Dh,
+                            inbound_outbound_travelers=travellers,
+                            nSteps=nSteps,
+                            t0=delayModel)
     system3.evolveSystem()
     system3.plot()
 #    plt.plot(system3.timeSeries.timeVector,

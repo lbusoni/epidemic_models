@@ -57,8 +57,8 @@ def main():
     system = simple_sir.SimpleSIR(pop, 1, 0, beta, 1 / gamma, nSteps,
                                   t0=delayModel)
     system.evolveSystem()
-    system.plot(susceptibles=False, infectives=False, recovered=False)
-    deaths = cfr * system.timeSeries.recoveredWithImmunity
+    system.plot(susceptibles=False, infectious=False, recovered=False)
+    deaths = cfr * system.timeSeries.recovered_with_immunity
     plt.plot(system.timeSeries.timeVector,
              deaths,
              label='deaths if R0=1 at day=%d' % (tInt1 + delayModel))
@@ -71,7 +71,7 @@ def main():
     system2 = simple_sir.SimpleSIR(pop, 1, 0, beta2, 1 / gamma2,
                                    nSteps, t0=delayModel)
     system2.evolveSystem()
-    deaths2 = cfr * system2.timeSeries.recoveredWithImmunity
+    deaths2 = cfr * system2.timeSeries.recovered_with_immunity
     plt.plot(system2.timeSeries.timeVector,
              deaths2,
              label='deaths if R0=1 at day=%d' % (tInt2 + delayModel))
@@ -81,7 +81,7 @@ def main():
     system3 = simple_sir.SimpleSIR(pop, 1, 0, beta3, 1 / gamma3,
                                    nSteps, t0=delayModel)
     system3.evolveSystem()
-    deaths3 = cfr * system3.timeSeries.recoveredWithImmunity
+    deaths3 = cfr * system3.timeSeries.recovered_with_immunity
     plt.plot(system3.timeSeries.timeVector,
              deaths3, label='deaths no action')
 

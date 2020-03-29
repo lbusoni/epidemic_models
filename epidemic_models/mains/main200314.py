@@ -9,14 +9,14 @@ import numpy as np
 def plotEurope():
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
-    deI, coI, reI, daI = csse.restoreItaly()
-    deF, coF, reF, daF = csse.restoreFrance()
-    deN, coN, reN, daN = csse.restoreNetherlands()
-    deS, coS, reS, daS = csse.restoreSpain()
-    deU, coU, reU, daU = csse.restoreUK()
-    deG, coG, reG, daG = csse.restoreGermany()
-    deK, coK, reK, daK = csse.restoreSouthKorea()
+    deH, coH, daH = csse.restoreHubei()
+    deI, coI, daI = csse.restoreItaly()
+    deF, coF, daF = csse.restoreFrance()
+    deN, coN, daN = csse.restoreNetherlands()
+    deS, coS, daS = csse.restoreSpain()
+    deU, coU, daU = csse.restoreUK()
+    deG, coG, daG = csse.restoreGermany()
+    deK, coK, daK = csse.restoreSouthKorea()
 
     pop = 6e7
     nSteps = 100
@@ -26,7 +26,7 @@ def plotEurope():
     gamma0 = 0.16
 
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta0,
                           average_infection_period=1 / gamma0,
                           epsilon=0.5,
@@ -34,7 +34,7 @@ def plotEurope():
                           nSteps=nSteps,
                           t0=delayModel)
     system3.evolveSystem()
-    system3.plot(susceptibles=False, infectives=False, recovered=False,
+    system3.plot(susceptibles=False, infectious=False, recovered=False,
                  confirmed=False, deaths=False)
     plt.plot(system3.timeSeries.timeVector, system3.timeSeries.confirmed,
              color='C7', linestyle='dotted',
@@ -76,7 +76,7 @@ def plotRegioni(what):
         dReg = DpcCovid(regione)
         plt.plot(dReg.days, dReg.select(what), label='%s' % regione)
     plt.semilogy()
-    plt.grid()
+    plt.grid(True)
     plt.legend()
     plt.title(what)
 
@@ -88,11 +88,11 @@ def plotRegioniVs(what1, what2):
                  dReg.select(what2),
                  label='%s' % regione)
     plt.semilogy()
-    plt.grid()
+    plt.grid(True)
     plt.legend()
     plt.ylabel(what2)
     plt.xlabel(what1)
-    plt.title("%s vs %s" % (what1, what2))
+    plt.title("%s vs %s" % (what2, what1))
 
 
 def plotReport1():
@@ -105,7 +105,7 @@ def plotReport1():
     gamma0 = 0.16
 
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta0,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon,
@@ -122,7 +122,7 @@ def plotReport2():
     strdates = 'Days (Hubei from Jan1, Italy from Feb6)'
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
+    deH, coH, daH = csse.restoreHubei()
 
     pop = 6e7
     nSteps = 200
@@ -137,7 +137,7 @@ def plotReport2():
     beta2[:tInt2] = beta0
     beta2[tInt2:] = 0.8 * gamma0
     system2 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta2,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon2,
@@ -145,7 +145,7 @@ def plotReport2():
                           nSteps=nSteps,
                           t0=delay_model2)
     system2.evolveSystem()
-    # system2.plot(susceptibles=False, infectives=False, recovered=False)
+    # system2.plot(susceptibles=False, infectious=False, recovered=False)
     system2.plot()
     t = 'Social rarefaction R0=0.8 from day %d\n $\epsilon$ = %g\n' % (
         tInt2 + delay_model2, epsilon2)
@@ -162,7 +162,7 @@ def plotReport2():
     cfr1 = 0.00005
     delay_model1 = -20
     system1 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta0,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon1,
@@ -183,8 +183,8 @@ def plotReport2():
 
 def plotForecast():
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
-    deI, coI, reI, daI = csse.restoreItaly()
+    deH, coH, daH = csse.restoreHubei()
+    deI, coI, daI = csse.restoreItaly()
 
     pop = 6e7
     nSteps = 100
@@ -199,7 +199,7 @@ def plotForecast():
     beta2[:tInt2] = beta0
     beta2[tInt2:] = 0.8 * gamma0
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta2,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon,
@@ -207,7 +207,7 @@ def plotForecast():
                           nSteps=nSteps,
                           t0=delayModel)
     system3.evolveSystem()
-    system3.plot(susceptibles=False, infectives=False, recovered=False,
+    system3.plot(susceptibles=False, infectious=False, recovered=False,
                  confirmed=False, deaths=False)
     plt.plot(system3.timeSeries.timeVector, system3.timeSeries.confirmed,
              color='C7', linestyle='dotted',

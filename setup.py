@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(name='epidemic_models',
       description='A simple tool to understand SARS, CoVid etc',
-      version='0.1',
+      version='0.2',
       classifiers=['Development Status :: 4 - Beta',
                    'Operating System :: POSIX :: Linux',
                    'Programming Language :: Python :: 3',

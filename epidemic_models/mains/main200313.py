@@ -91,8 +91,8 @@ def plotGio():
     system = simple_sir.SimpleSIR(pop, 1, 0, beta, 1 / gamma0, nSteps,
                                   t0=delayModel)
     system.evolveSystem()
-    system.plot(susceptibles=False, infectives=False, recovered=False)
-    deaths = cfr * system.timeSeries.recoveredWithImmunity
+    system.plot(susceptibles=False, infectious=False, recovered=False)
+    deaths = cfr * system.timeSeries.recovered_with_immunity
     plt.plot(system.timeSeries.timeVector,
              deaths,
              label='deaths if R0=1 at day=%d' % (tInt1 + delayModel))
@@ -104,7 +104,7 @@ def plotGio():
     system2 = simple_sir.SimpleSIR(pop, 1, 0, beta2, 1 / gamma0,
                                    nSteps, t0=delayModel)
     system2.evolveSystem()
-    deaths2 = cfr * system2.timeSeries.recoveredWithImmunity
+    deaths2 = cfr * system2.timeSeries.recovered_with_immunity
     plt.plot(system2.timeSeries.timeVector,
              deaths2,
              label='deaths if R0=1 at day=%d' % (tInt2 + delayModel))
@@ -115,7 +115,7 @@ def plotGio():
     system4 = simple_sir.SimpleSIR(pop, 1, 0, beta4, 1 / gamma0,
                                    nSteps, t0=delayModel)
     system4.evolveSystem()
-    deaths4 = cfr * system4.timeSeries.recoveredWithImmunity
+    deaths4 = cfr * system4.timeSeries.recovered_with_immunity
     plt.plot(system4.timeSeries.timeVector,
              deaths4,
              label='deaths if R0=0 at day=%d' % (tInt2 + delayModel))
@@ -123,7 +123,7 @@ def plotGio():
     system3 = simple_sir.SimpleSIR(pop, 1, 0, beta0, 1 / gamma0,
                                    nSteps, t0=delayModel)
     system3.evolveSystem()
-    deaths3 = cfr * system3.timeSeries.recoveredWithImmunity
+    deaths3 = cfr * system3.timeSeries.recovered_with_immunity
     plt.plot(system3.timeSeries.timeVector,
              deaths3, label='deaths no action')
 
@@ -167,7 +167,7 @@ def plotFB():
     gamma0 = 0.16
 
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta0,
                           average_infection_period=1 / gamma0,
                           epsilon=1,
@@ -175,8 +175,8 @@ def plotFB():
                           nSteps=nSteps,
                           t0=delayModel)
     system3.evolveSystem()
-    deaths3 = cfr * system3.timeSeries.recoveredWithImmunity
-    system3.plot(susceptibles=False, infectives=False, recovered=False,
+    deaths3 = cfr * system3.timeSeries.recovered_with_immunity
+    system3.plot(susceptibles=False, infectious=False, recovered=False,
                  confirmed=False, deaths=False)
     plt.plot(system3.timeSeries.timeVector,
              deaths3, color='C2', label='SIR model, R0=3')
@@ -215,7 +215,7 @@ def plotLapo():
     beta2[tInt2:tInt2 + lockDownTime] = 1.0 * gamma0
     beta2[tInt2 + lockDownTime:] = beta0
     system2 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta2,
                           average_infection_period=1 / gamma0,
                           epsilon=1,
@@ -223,16 +223,16 @@ def plotLapo():
                           nSteps=nSteps,
                           t0=delayModel)
     system2.evolveSystem()
-    # system2.plot(susceptibles=False, infectives=False, recovered=False)
+    # system2.plot(susceptibles=False, infectious=False, recovered=False)
     system2.plot()
-    deaths2 = 1.1 * cfr * system2.timeSeries.recoveredWithImmunity
+    deaths2 = 1.1 * cfr * system2.timeSeries.recovered_with_immunity
     plt.plot(system2.timeSeries.timeVector,
              deaths2,
              label='deaths if R0=1.0 from day %d to %d ' % (
                  tInt2 + delayModel, tInt2 + lockDownTime + delayModel))
 
     system3 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta0,
                           average_infection_period=1 / gamma0,
                           epsilon=1,
@@ -240,8 +240,8 @@ def plotLapo():
                           nSteps=nSteps,
                           t0=delayModel)
     system3.evolveSystem()
-    system3.plot(susceptibles=False, infectives=True, recovered=False, newFigure=False)
-    deaths3 = 1.1 * cfr * system3.timeSeries.recoveredWithImmunity
+    system3.plot(susceptibles=False, infectious=True, recovered=False, newFigure=False)
+    deaths3 = 1.1 * cfr * system3.timeSeries.recovered_with_immunity
     plt.plot(system3.timeSeries.timeVector,
              deaths3, label='deaths no action')
 
@@ -273,7 +273,7 @@ def plotLongPeriod():
     beta2[tInt2:tInt2 + lock_down_period] = 0.8 * gamma0
     beta2[tInt2 + lock_down_period:] = beta0
     system2 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta2,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon2,
@@ -281,7 +281,7 @@ def plotLongPeriod():
                           nSteps=nSteps,
                           t0=delay_model2)
     system2.evolveSystem()
-    # system2.plot(susceptibles=False, infectives=False, recovered=False)
+    # system2.plot(susceptibles=False, infectious=False, recovered=False)
     system2.plot()
     t = 'Social rarefaction R0=0.8 from day %d to %d\nSymptomatic/asymptomatic = %g\n' % (
         tInt2 + delay_model2, tInt2 + lock_down_period + delay_model2, epsilon2)
@@ -297,7 +297,7 @@ def plotLongPeriod():
     cfr1 = 0.00005
     delay_model1 = -20
     system1 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta0,
                           average_infection_period=1 / gamma0,
                           epsilon=epsilon1,
@@ -331,7 +331,7 @@ def speed(R0):
     delay_model2 = 0
 
     system2 = sircd.SIRCD(susceptibles=pop,
-                          infectives=1,
+                          infectious=1,
                           contact_rate=beta,
                           average_infection_period=1 / gamma,
                           epsilon=epsilon2,
