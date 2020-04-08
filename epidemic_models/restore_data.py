@@ -78,19 +78,21 @@ class CSSECovid():
     DELAY_ITALY = 36
     DELAY_IRAN = 34
     DELAY_HUBEI = 0
-    DELAY_FRANCE = 46
-    DELAY_SPAIN = 45
+    DELAY_FRANCE = 47
+    DELAY_SPAIN = 44
     DELAY_SOUTH_KOREA = 35
     DELAY_NETHERLANDS = 52
-    DELAY_UK = 50
+    DELAY_UK = 51
     DELAY_GERMANY = 54
+    DELAY_SWEDEN = 59
+    DELAY_US = 49
 
     def __init__(self):
         self._de = restoreCSSEDeath()
         self._co = restoreCSSEConfirmed()
 
     def string_dates(self):
-        return 'Days [hub (Jan1), it(+36), fr(+46), es(+45), ne(+52), uk(+50), de(+54)]'
+        return 'Days [hub (Jan1), it(+36), fr(+47), es(+43), ne(+52), uk(+51), de(+54)]'
 
     def restoreCSSECountry(self, name, delay_date=0):
         assert np.array_equal(self._de[name].days, self._co[name].days)
@@ -99,36 +101,44 @@ class CSSECovid():
         days = self._de[name].days - delay_date
         return deaths, confirmed, days
 
-    def restoreItaly(self):
+    def italy(self):
         de, co, da = self.restoreCSSECountry('Italy', self.DELAY_ITALY)
         de[50] = 1016
         co[50] = 15113
         return de, co, da
 
-    def restoreHubei(self):
+    def hubei(self):
         return self.restoreCSSECountry('Hubei/China', self.DELAY_HUBEI)
 
-    def restoreFrance(self):
+    def france(self):
         return self.restoreCSSECountry('France', self.DELAY_FRANCE)
 
-    def restoreSpain(self):
+    def spain(self):
         return self.restoreCSSECountry('Spain', self.DELAY_SPAIN)
 
-    def restoreNetherlands(self):
+    def netherlands(self):
         return self.restoreCSSECountry('Netherlands',
                                        self.DELAY_NETHERLANDS)
 
-    def restoreUK(self):
+    def uk(self):
         return self.restoreCSSECountry('United Kingdom',
                                        self.DELAY_UK)
 
-    def restoreGermany(self):
+    def germany(self):
         return self.restoreCSSECountry('Germany',
                                        self.DELAY_GERMANY)
 
-    def restoreSouthKorea(self):
+    def south_korea(self):
         return self.restoreCSSECountry('Korea, South',
                                        self.DELAY_SOUTH_KOREA)
+
+    def sweden(self):
+        return self.restoreCSSECountry('Sweden',
+                                       self.DELAY_SWEDEN)
+
+    def usa(self):
+        return self.restoreCSSECountry('US',
+                                       self.DELAY_US)
 
 
 class DpcCovid():
@@ -155,16 +165,21 @@ class DpcCovid():
     TERAPIA_INTENSIVA = 'terapia_intensiva'
     TOTALE_OSPEDALIZZATI = 'totale_ospedalizzati'
     ISOLAMENTO_DOMICILIARE = 'isolamento_domiciliare'
-    TOTALE_ATTUALMENTE_POSITIVI = 'totale_attualmente_positivi'
-    NUOVI_ATTUALMENTE_POSITIVI = 'nuovi_attualmente_positivi'
+    TOTALE_POSITIVI = 'totale_positivi'
     DIMESSI_GUARITI = 'dimessi_guariti'
     DECEDUTI = 'deceduti'
     TOTALE_CASI = 'totale_casi'
     TAMPONI = 'tamponi'
 
-    NUOVI_CONTAGIATI = 'nuovi_contagiati'
-    NUOVI_DECEDUTI = 'nuovi_deceduti'
+    VARIAZIONE_RICOVERATI_CON_SINTOMI = 'variazione_ricoverati_con_sintomi'
+    VARIAZIONE_TERAPIA_INTENSIVA = 'variazione_terapia_intensiva'
+    VARIAZIONE_TOTALE_OSPEDALIZZATI = 'variazione_totale_ospedalizzati'
+    VARIAZIONE_ISOLAMENTO_DOMICILIARE = 'variazione_isolamento_domiciliare'
+    VARIAZIONE_TOTALE_POSITIVI = 'variazione_totale_positivi'
     NUOVI_DIMESSI_GUARITI = 'nuovi_dimessi_guariti'
+    NUOVI_DECEDUTI = 'nuovi_deceduti'
+    NUOVI_CONTAGIATI = 'nuovi_contagiati'
+    NUOVI_TAMPONI = 'nuovi_tamponi'
 
     ABRUZZO = 'Abruzzo'
     BASILICATA = 'Basilicata'
@@ -188,11 +203,11 @@ class DpcCovid():
     VALLE_DI_AOSTA = "Valle d'Aosta"
     VENETO = "Veneto"
 
-    ALL = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, EMILIA_ROMAGNA,
-           FRIULI_VENEZIA_GIULIA, LAZIO, LIGURIA, LOMBARDIA, MARCHE,
-           MOLISE, PIEMONTE, PROVINCIA_AUTONOMA_DI_BOLZANO,
-           PROVINCIA_AUTONOMA_DI_TRENTO, PUGLIA, SARDEGNA, SICILIA,
-           TOSCANA, UMBRIA, VALLE_DI_AOSTA, VENETO]
+    ITALIA = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, EMILIA_ROMAGNA,
+              FRIULI_VENEZIA_GIULIA, LAZIO, LIGURIA, LOMBARDIA, MARCHE,
+              MOLISE, PIEMONTE, PROVINCIA_AUTONOMA_DI_BOLZANO,
+              PROVINCIA_AUTONOMA_DI_TRENTO, PUGLIA, SARDEGNA, SICILIA,
+              TOSCANA, UMBRIA, VALLE_DI_AOSTA, VENETO]
 
     NORD = [EMILIA_ROMAGNA,
             FRIULI_VENEZIA_GIULIA, LIGURIA, LOMBARDIA,
@@ -201,17 +216,29 @@ class DpcCovid():
 
     CENTRO = [LAZIO, MARCHE, TOSCANA, UMBRIA]
 
-    SUD = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, MOLISE, PUGLIA]
-
-    ISOLE = [SARDEGNA, SICILIA]
+    SUD = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, MOLISE, PUGLIA,
+           SARDEGNA, SICILIA]
 
     def __init__(self, denominazione_regione):
         self._all = self.load_csv_regioni()
+        self._createLabel(denominazione_regione)
         if not isinstance(denominazione_regione, list):
             denominazione_regione = (denominazione_regione,)
         self._filter = \
             self._all[self.DENOMINAZIONE_REGIONE].isin(denominazione_regione)
         self._data = self._all[self._filter].groupby(self.DATA).sum()
+
+    def _createLabel(self, denominazione_regione):
+        if denominazione_regione == self.ITALIA:
+            self._label = "Italia"
+        elif denominazione_regione == self.CENTRO:
+            self._label = "Centro"
+        elif denominazione_regione == self.NORD:
+            self._label = "Nord"
+        elif denominazione_regione == self.SUD:
+            self._label = "Sud e Isole"
+        else:
+            self._label = denominazione_regione
 
     @property
     def data_frame(self):
@@ -227,7 +254,7 @@ class DpcCovid():
 
     @property
     def denominazione_regione(self):
-        return self.select(self.DENOMINAZIONE_REGIONE)
+        return self._label
 
     @property
     def latitudine(self):
@@ -259,12 +286,12 @@ class DpcCovid():
         return self.select(self.ISOLAMENTO_DOMICILIARE)
 
     @property
-    def totale_attualmente_positivi(self):
-        return self.select(self.TOTALE_ATTUALMENTE_POSITIVI)
+    def totale_positivi(self):
+        return self.select(self.TOTALE_POSITIVI)
 
     @property
-    def nuovi_attualmente_positivi(self):
-        return self.select(self.NUOVI_ATTUALMENTE_POSITIVI)
+    def variazione_totali_positivi(self):
+        return self.select(self.VARIAZIONE_TOTALE_POSITIVI)
 
     @property
     def dimessi_guariti(self):
@@ -294,6 +321,26 @@ class DpcCovid():
     def nuovi_dimessi_guariti(self):
         return diff_from_zero(self.dimessi_guariti)
 
+    @property
+    def nuovi_tamponi(self):
+        return diff_from_zero(self.tamponi)
+
+    @property
+    def variazione_ricoverati_con_sintomi(self):
+        return diff_from_zero(self.ricoverati_con_sintomi)
+
+    @property
+    def variazione_terapia_intensiva(self):
+        return diff_from_zero(self.terapia_intensiva)
+
+    @property
+    def variazione_totale_ospedalizzati(self):
+        return diff_from_zero(self.totale_ospedalizzati)
+
+    @property
+    def variazione_isolamento_domiciliare(self):
+        return diff_from_zero(self.isolamento_domiciliare)
+
     def select(self, what):
         if what == self.NUOVI_CONTAGIATI:
             return self.nuovi_contagiati
@@ -301,6 +348,16 @@ class DpcCovid():
             return self.nuovi_deceduti
         elif what == self.NUOVI_DIMESSI_GUARITI:
             return self.nuovi_dimessi_guariti
+        elif what == self.NUOVI_TAMPONI:
+            return self.nuovi_tamponi
+        elif what == self.VARIAZIONE_RICOVERATI_CON_SINTOMI:
+            return self.variazione_ricoverati_con_sintomi
+        elif what == self.VARIAZIONE_TERAPIA_INTENSIVA:
+            return self.variazione_terapia_intensiva
+        elif what == self.VARIAZIONE_TOTALE_OSPEDALIZZATI:
+            return self.variazione_totale_ospedalizzati
+        elif what == self.VARIAZIONE_ISOLAMENTO_DOMICILIARE:
+            return self.variazione_isolamento_domiciliare
         else:
             return self._data[what].values
 

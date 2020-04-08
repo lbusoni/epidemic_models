@@ -1,5 +1,6 @@
 
 import numpy as np
+from epidemic_models.restore_data import diff_from_zero
 
 
 class ExponentialFitResult():
@@ -45,5 +46,25 @@ def tau_evolution(dpcCovid, what, fit_samples=5):
     return tVect, tauVect
 
 
-def doubling_time(tau):
+def doubling_time_from_exp_fitting(tau):
     return tau * np.log(2.)
+
+
+def daily_increment_from_exp_fitting(tau):
+    return np.exp(1. / tau) - 1
+
+
+def daily_increment(dpcCovid, what, fit_samples=5):
+    t = dpcCovid.days
+    y = dpcCovid.select(what)
+    daily_inc = np.diff(y) / y[:-1]
+    inc_smo = np.convolve(daily_inc,
+                          np.ones((fit_samples,)) / fit_samples,
+                          mode='valid')
+    return t[fit_samples:], inc_smo
+
+
+def doubling_time(dpcCovid, what, fit_samples=5):
+    t, y = daily_increment(dpcCovid, what, fit_samples)
+    return t, np.log(2) / np.log(y + 1)
+

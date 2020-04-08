@@ -1,5 +1,4 @@
-from epidemic_models import sircd, seirah
-
+from epidemic_models import seirah
 import matplotlib.pyplot as plt
 import numpy as np
 from epidemic_models.restore_data import CSSECovid, DpcCovid, diff_from_zero
@@ -11,28 +10,28 @@ def plotModelloLombardia():
     strdates = 'Days from Jan1'
 
     csse = CSSECovid()
-    deH, coH, daH = csse.restoreHubei()
-    dpc = DpcCovid(DpcCovid.LOMBARDIA)
-    deL = dpc.deceduti
-    coL = dpc.totale_casi
-    daL = dpc.days
+    deH, coH, daH = csse.hubei()
+    dL = DpcCovid(DpcCovid.LOMBARDIA)
+    deL = dL.deceduti
+    coL = dL.totale_casi
+    daL = dL.days
 
     nSteps = 100
     delayModel = 0
     periods = np.array([65])
 
     E0 = 0
-    I0 = .01
+    I0 = .00025
     R0 = 0
     A0 = I0 * 10
     H0 = 0
     S0 = 10000000 - E0 - I0 - R0 - A0 - H0
-    beta = piecewise(periods, (1.75, 0.15), nSteps)
-    r = piecewise(periods, (0.19, 0.17), nSteps)
+    beta = piecewise(periods, (1.75, 0.65), nSteps)
+    r = 1
     De = 5.2
     Di = 2.3
-    Dh = 30
     Dq = piecewise(periods, (10, 10), nSteps)
+    Dh = 30
     travellers = 0
 
     system3 = seirah.SEIRAH(susceptibles=S0,
@@ -53,16 +52,22 @@ def plotModelloLombardia():
                             t0=delayModel)
     system3.evolveSystem()
     system3.plot()
+    plt.plot(system3.timeSeries.timeVector,
+             system3.timeSeries.susceptibles[0] - system3.timeSeries.susceptibles,
+             color='C7', label='total cases')
+    plt.plot(system3.timeSeries.timeVector,
+             system3.timeSeries.recovered_with_immunity * 0.005,
+             '--', color='C4', label='deaths')
 
-    plt.plot(daL, deL, '.-',
-             linewidth=2,
-             markersize=12,
-             color='C4',
-             label='deaths Italy')
-    plt.plot(daL, coL, 'x-', color='C4', label='confirmed Italy')
-    plt.plot([], [], ' ', label="data at 27 Mar 2020")
-    plt.ylim(10, 1e6)
-    plt.xlim(0, 100)
+    plt.plot(dL.days, dL.deceduti, '+-', color='C4', label='deceduti')
+#    plt.plot(dL.days, dL.dimessi_guariti, 'x-', color='C4', label='dimessi')
+#    plt.plot(dL.days, dL.dimessi_guariti + dL.deceduti, '.-', color='C4', label='dimessi o deceduti')
+    plt.plot(dL.days, dL.totale_attualmente_positivi, '.-', color='C6',
+             label='att. positivi')
+    plt.plot(dL.days, dL.totale_casi, '.-', color='C7', label='totale casi')
+    plt.plot([], [], ' ', label=dataAtToday())
+    plt.ylim(10, 10e6)
+    plt.xlim(40, 100)
     plt.xlabel(strdates)
     plt.title('')
     plt.legend()

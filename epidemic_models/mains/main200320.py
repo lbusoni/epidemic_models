@@ -1,10 +1,10 @@
-from epidemic_models import simple_sir, restore_data, sircd, seirah
+from epidemic_models import sircd, seirah
 
 import matplotlib.pyplot as plt
 import numpy as np
 from epidemic_models.restore_data import CSSECovid, DpcCovid
 from epidemic_models.utils.exponential_fitting import tau_evolution, \
-    doubling_time
+    doubling_time, daily_increment
 from epidemic_models.utils import piecewise
 
 
@@ -12,8 +12,8 @@ def plotFB():
     strdates = 'Days (Hub +Jan1, I +Feb6)'
 
     csse = CSSECovid()
-    deH, coH, daH = csse.restoreHubei()
-    deI, coI, daI = csse.restoreItaly()
+    deH, coH, daH = csse.hubei()
+    deI, coI, daI = csse.italy()
 
     pop = 6e7
     nSteps = 100
@@ -59,48 +59,18 @@ def doublingTime(what):
     dpcS = DpcCovid(DpcCovid.SUD)
     dpcC = DpcCovid(DpcCovid.CENTRO)
     dpcN = DpcCovid(DpcCovid.NORD)
-    dpcIs = DpcCovid(DpcCovid.ISOLE)
-    dpcI = DpcCovid(DpcCovid.ALL)
+    dpcI = DpcCovid(DpcCovid.ITALIA)
 
     ttS = tau_evolution(dpcS, what)
     ttC = tau_evolution(dpcC, what)
     ttN = tau_evolution(dpcN, what)
-    ttIs = tau_evolution(dpcIs, what)
     ttI = tau_evolution(dpcI, what)
 
     plt.figure()
     plt.plot(ttS[0], doubling_time(ttS[1]), label='Sud')
     plt.plot(ttC[0], doubling_time(ttC[1]), label='Centro')
     plt.plot(ttN[0], doubling_time(ttN[1]), label='Nord')
-    plt.plot(ttIs[0], doubling_time(ttIs[1]), label='Isole')
     plt.plot(ttI[0], doubling_time(ttI[1]), label='Italia')
-    plt.legend()
-    plt.grid()
-
-
-def plotRegione(who, what):
-    if not isinstance(who, list):
-        who = (who,)
-    region_data = [DpcCovid(w) for w in who]
-    data = [d.select(what) for d in region_data]
-    days = [d.days for d in region_data]
-
-    plt.figure()
-    for t, d, w in zip(days, data, who):
-        plt.plot(t, d, label=w)
-    plt.legend()
-    plt.grid()
-
-
-def doublingTimeRegione(who, what):
-    if not isinstance(who, list):
-        who = (who,)
-    region_data = [DpcCovid(w) for w in who]
-    taus = [tau_evolution(d, what) for d in region_data]
-
-    plt.figure()
-    for t, w in zip(taus, who):
-        plt.plot(t[0], doubling_time(t[1]), label=w)
     plt.legend()
     plt.grid()
 
@@ -113,8 +83,8 @@ def plotTalkXiongLin():
     strdates = 'Days (Hub +Jan1, I +Feb6)'
 
     csse = CSSECovid()
-    deH, coH, daH = csse.restoreHubei()
-    deI, coI, daI = csse.restoreItaly()
+    deH, coH, daH = csse.hubei()
+    deI, coI, daI = csse.italy()
 
     nSteps = 100
     delayModel = 0
@@ -169,3 +139,13 @@ def plotTalkXiongLin():
     plt.title('')
     plt.legend()
     return system3
+
+
+def howIsGoing(who):
+    plotRegione(who, DpcCovid.NUOVI_TAMPONI)
+    plotRegione(who, DpcCovid.NUOVI_DECEDUTI)
+    plotRegione(who, DpcCovid.VARIAZIONE_TOTALE_POSITIVI)
+    plotRegione(who, DpcCovid.NUOVI_DIMESSI_GUARITI)
+    plotRegione(who, DpcCovid.NUOVI_CONTAGIATI)
+    plt.semilogy()
+

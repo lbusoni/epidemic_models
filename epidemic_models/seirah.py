@@ -289,20 +289,23 @@ class SEIRAH(object):
         if newFigure:
             plt.figure()
         if susceptibles:
-            plt.plot(ts.timeVector, ts.susceptibles, label='Susceptibles')
+            plt.plot(ts.timeVector, ts.susceptibles,
+                     color='C1', label='Susceptibles')
         if exposed:
-            plt.plot(ts.timeVector, ts.exposed, label='Exposed')
+            plt.plot(ts.timeVector, ts.exposed,
+                     color='C2', label='Exposed')
         if infectious:
-            plt.plot(ts.timeVector, ts.infectious, label='Infectious')
+            plt.plot(ts.timeVector, ts.infectious,
+                     color='C3', label='Infectious')
         if recovered:
             plt.plot(ts.timeVector,
-                     ts.recovered_with_immunity,
+                     ts.recovered_with_immunity, color='C4',
                      label='Recovered with Immunity')
         if unascertained:
-            plt.plot(ts.timeVector, ts.unascertained,
+            plt.plot(ts.timeVector, ts.unascertained, color='C5',
                      label='Unascertained')
         if hospitalized:
-            plt.plot(ts.timeVector, ts.hospitalized,
+            plt.plot(ts.timeVector, ts.hospitalized, color='C6',
                      label='Hospitalized')
         # plt.plot(ts.timeVector, ts.justInfected, label='Just Infected')
         # plt.plot(ts.timeVector, self.forceOfInfection(), label='Force of Infection')

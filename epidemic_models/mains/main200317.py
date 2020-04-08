@@ -9,8 +9,8 @@ def plotFB():
     strdates = 'Days (Hub +Jan1, I +Feb6)'
 
     csse = CSSECovid()
-    deH, coH, daH = csse.restoreHubei()
-    deI, coI, daI = csse.restoreItaly()
+    deH, coH, daH = csse.hubei()
+    deI, coI, daI = csse.italy()
 
     pop = 6e7
     nSteps = 100

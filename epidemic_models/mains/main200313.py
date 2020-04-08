@@ -152,8 +152,8 @@ def plotFB():
     strdates = 'Days (Hub +Jan1, I +Feb6)'
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
-    deI, coI, reI, daI = csse.restoreItaly()
+    deH, coH, reH, daH = csse.hubei()
+    deI, coI, reI, daI = csse.italy()
     # deF, coF, reF, daF = csse.restoreFrance()
     # deR, coR, reR, daR = _restoreCountry('Iran', delayR)
     # deS, coS, reS, daS = csse.restoreSpain()
@@ -254,7 +254,7 @@ def plotLongPeriod():
     strdates = 'Days (Hub +Jan1)'
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
+    deH, coH, reH, daH = csse.hubei()
 
     pop = 6e7
     nSteps = 200
@@ -319,7 +319,7 @@ def speed(R0):
     strdates = 'Days (Hub +Jan1)'
 
     csse = CSSECovid()
-    deH, coH, reH, daH = csse.restoreHubei()
+    deH, coH, reH, daH = csse.hubei()
 
     pop = 6e7
     nSteps = 500
