@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from epidemic_models.restore_data import CSSECovid, DpcCovid, diff_from_zero
 from epidemic_models.utils import piecewise
-from datetime import datetime
+from epidemic_models.utils.plotting import dataAtToday
 
 
 def plotModelloLombardia():
@@ -73,12 +73,7 @@ def plotModelloLombardia():
     plt.legend()
 
 
-def dataAtToday():
-    now = datetime.now()
-    return now.strftime("data at %m/%d/%Y")
-
-
-def plotDatiDpc(who=DpcCovid.ALL):
+def plotDatiDpc(who=DpcCovid.ITALIA):
     dI = DpcCovid(who)
 
     plt.figure()

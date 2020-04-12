@@ -4,6 +4,7 @@ from epidemic_models import sircd
 import matplotlib.pyplot as plt
 from epidemic_models.restore_data import CSSECovid, DpcCovid
 import numpy as np
+from epidemic_models.utils.plotting import dataAtToday
 
 
 def plotEurope():
@@ -73,7 +74,7 @@ def plotEurope():
     plt.xlim(0, 80)
     plt.xlabel(csse.string_dates())
     plt.title('')
-    plt.plot([], [], ' ', label="data at 19 Mar 2020")
+    plt.plot([], [], ' ', label=dataAtToday())
     plt.legend()
 
 
@@ -124,11 +125,11 @@ def plotEuropeDeath():
     plt.plot(daK, deK, '.-', color='C6', label='deaths South Korea')
     plt.plot(daS, deS, '.-', color='C9', label='deaths Sweden')
     plt.plot(daUs, deUs, '.-', color='C5', label='deaths USA')
-    plt.ylim(1, 1e6)
-    plt.xlim(0, 80)
+    plt.ylim(10, 1e6)
+    plt.xlim(10, 80)
     plt.xlabel(csse.string_dates())
     plt.title('')
-    plt.plot([], [], ' ', label="data at 19 Mar 2020")
+    plt.plot([], [], ' ', label=dataAtToday())
     plt.legend()
 
 

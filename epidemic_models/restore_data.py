@@ -186,7 +186,7 @@ class DpcCovid():
     PROVINCIA_AUTONOMA_DI_BOLZANO = "P.A. Bolzano"
     CALABRIA = "Calabria"
     CAMPANIA = "Campania"
-    EMILIA_ROMAGNA = "Emilia Romagna"
+    EMILIA_ROMAGNA = "Emilia-Romagna"
     FRIULI_VENEZIA_GIULIA = "Friuli Venezia Giulia"
     LAZIO = "Lazio"
     LIGURIA = "Liguria"
@@ -202,6 +202,9 @@ class DpcCovid():
     UMBRIA = "Umbria"
     VALLE_DI_AOSTA = "Valle d'Aosta"
     VENETO = "Veneto"
+
+    TRENTINO_ALTO_ADIGE = [PROVINCIA_AUTONOMA_DI_BOLZANO,
+                           PROVINCIA_AUTONOMA_DI_TRENTO]
 
     ITALIA = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, EMILIA_ROMAGNA,
               FRIULI_VENEZIA_GIULIA, LAZIO, LIGURIA, LOMBARDIA, MARCHE,
@@ -220,6 +223,7 @@ class DpcCovid():
            SARDEGNA, SICILIA]
 
     def __init__(self, denominazione_regione):
+        self._pop = PopolazioneRegioniItaliane(denominazione_regione)
         self._all = self.load_csv_regioni()
         self._createLabel(denominazione_regione)
         if not isinstance(denominazione_regione, list):
@@ -243,6 +247,10 @@ class DpcCovid():
     @property
     def data_frame(self):
         return self._data
+
+    @property
+    def popolazione(self):
+        return self._pop
 
     @property
     def stato(self):
@@ -383,3 +391,106 @@ class DpcCovid():
                                 'dati-andamento-nazionale',
                                 'dpc-covid19-ita-andamento-nazionale.csv')
         return pd.read_csv(filename)
+
+
+class PopolazioneRegioniItaliane():
+
+    DENOMINAZIONE_REGIONE = 'regione'
+    RESIDENTI = 'residenti'
+    SUPERFICIE = 'superficie'
+    NUMERO_COMUNI = 'n_comuni'
+    NUMERO_PROVINCE = 'n_province'
+    DENSITA = 'densita'
+
+    ABRUZZO = 'Abruzzo'
+    BASILICATA = 'Basilicata'
+    CALABRIA = "Calabria"
+    CAMPANIA = "Campania"
+    EMILIA_ROMAGNA = "Emilia-Romagna"
+    FRIULI_VENEZIA_GIULIA = "Friuli Venezia Giulia"
+    LAZIO = "Lazio"
+    LIGURIA = "Liguria"
+    LOMBARDIA = "Lombardia"
+    MARCHE = "Marche"
+    MOLISE = "Molise"
+    PIEMONTE = "Piemonte"
+    PUGLIA = "Puglia"
+    SARDEGNA = "Sardegna"
+    SICILIA = "Sicilia"
+    TOSCANA = "Toscana"
+    UMBRIA = "Umbria"
+    VALLE_DI_AOSTA = "Valle d'Aosta"
+    VENETO = "Veneto"
+    TRENTINO_ALTO_ADIGE = "Trentino-Alto Adige"
+
+    ITALIA = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, EMILIA_ROMAGNA,
+              FRIULI_VENEZIA_GIULIA, LAZIO, LIGURIA, LOMBARDIA, MARCHE,
+              MOLISE, PIEMONTE, PUGLIA, SARDEGNA, SICILIA,
+              TOSCANA, TRENTINO_ALTO_ADIGE, UMBRIA, VALLE_DI_AOSTA, VENETO]
+
+    NORD = [EMILIA_ROMAGNA,
+            FRIULI_VENEZIA_GIULIA, LIGURIA, LOMBARDIA,
+            PIEMONTE, TRENTINO_ALTO_ADIGE, VALLE_DI_AOSTA, VENETO]
+
+    CENTRO = [LAZIO, MARCHE, TOSCANA, UMBRIA]
+
+    SUD = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, MOLISE, PUGLIA,
+           SARDEGNA, SICILIA]
+
+    def __init__(self, denominazione_regione):
+        self._all = self.load_csv_regioni()
+        self._createLabel(denominazione_regione)
+        if not isinstance(denominazione_regione, list):
+            denominazione_regione = (denominazione_regione,)
+        self._filter = \
+            self._all[self.DENOMINAZIONE_REGIONE].isin(denominazione_regione)
+        self._data = self._all[self._filter].sum()
+
+    def _createLabel(self, denominazione_regione):
+        if denominazione_regione == self.ITALIA:
+            self._label = "Italia"
+        elif denominazione_regione == self.CENTRO:
+            self._label = "Centro"
+        elif denominazione_regione == self.NORD:
+            self._label = "Nord"
+        elif denominazione_regione == self.SUD:
+            self._label = "Sud e Isole"
+        else:
+            self._label = denominazione_regione
+
+    @property
+    def data_frame(self):
+        return self._data
+
+    def select(self, what):
+        if what == self.DENSITA:
+            return self.densita
+        else:
+            return self._data[what]
+
+    @property
+    def residenti(self):
+        return self.select(self.RESIDENTI)
+
+    @property
+    def superficie(self):
+        return self.select(self.SUPERFICIE)
+
+    @property
+    def densita(self):
+        return self.residenti / self.superficie
+
+    @property
+    def numero_comuni(self):
+        return self.select(self.NUMERO_COMUNI)
+
+    @property
+    def numero_province(self):
+        return self.select(self.NUMERO_PROVINCE)
+
+    def load_csv_regioni(self):
+        rootDir = dataRootDir()
+        filename = os.path.join(rootDir,
+                                'popolazione_italiana',
+                                'popolazione_regioni.csv')
+        return pd.read_csv(filename, sep=';')

@@ -6,6 +6,7 @@ from epidemic_models.restore_data import CSSECovid, DpcCovid
 from epidemic_models.utils.exponential_fitting import tau_evolution, \
     doubling_time, daily_increment
 from epidemic_models.utils import piecewise
+from epidemic_models.utils.plotting import plotRegione
 
 
 def plotFB():

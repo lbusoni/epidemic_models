@@ -3,10 +3,17 @@ import matplotlib.pyplot as plt
 from epidemic_models.restore_data import DpcCovid
 from epidemic_models.utils.exponential_fitting import doubling_time, \
     daily_increment
+from datetime import datetime
 
 
-def _parse(who, what, split=False,
-           use_doubling_time=False, use_daily_increment=False):
+def dataAtToday():
+    now = datetime.now()
+    return now.strftime("data at %m/%d/%Y")
+
+
+def _parse(who, what, split=False, per_inhabitant=False,
+           use_doubling_time=False, use_daily_increment=False,
+           ):
     if not isinstance(who, list):
         who = [who, ]
     if split:
@@ -27,14 +34,21 @@ def _parse(who, what, split=False,
     else:
         data = [d.select(what) for d in region_data]
         days = [d.days for d in region_data]
+
+    if per_inhabitant:
+        data = [d / r.popolazione.residenti for d, r in zip(data, region_data)]
+
     return days, data, labelRegion, what
 
 
 def plotRegione(who, what, split=False,
-                use_doubling_time=False, use_daily_increment=False):
+                per_inhabitant=False,
+                use_doubling_time=False,
+                use_daily_increment=False):
 
     days, data, labelRegion, what = _parse(
-        who, what, split, use_doubling_time, use_daily_increment)
+        who, what, split, per_inhabitant,
+        use_doubling_time, use_daily_increment)
 
     for t, d, w in zip(days, data, labelRegion):
         plt.plot(t, d, label='%s %s' % (what, w))

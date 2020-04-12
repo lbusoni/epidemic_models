@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
+from cpyment.cmodel import CModel
 
 
 class Population(object):
@@ -279,13 +280,89 @@ class SIRCD(object):
         plt.semilogy()
 
 
+class SIRCD_new(SIRCD):
+
+    '''
+    SIR Model with the addition of two observable populations: confirmed and deaths
+
+    N = S + I + R
+    dS = -beta S I / N
+    dC = -epsilon dS
+    dI = dS - gamma I
+    dR = gamma I
+    dD = delta dR
+
+    Note: in this approach, Deaths are a subset of RecoveredWithImmunity 
+    altough it sounds weird.
+    It's just a way of correlating an observable (total deaths) with
+    the R of SIR through a known proportional factor delta.
+    '''
+
+    def __init__(self, susceptibles=90, infectious=10, immunes=0,
+                 confirmed=0, deaths=0,
+                 contact_rate=0.3, average_infection_period=10,
+                 nSteps=100, t0=0, epsilon=.1, delta=.001):
+
+        self._nSteps = int(nSteps)
+        self._population = Population(
+            susceptibles, infectious, immunes, confirmed, deaths)
+
+        self._beta = self._scalarArgs2Vectors(contact_rate)
+        self._gamma = self._scalarArgs2Vectors(
+            1 / average_infection_period)
+        self._epsilon = self._scalarArgs2Vectors(epsilon)
+        self._delta = self._scalarArgs2Vectors(delta)
+
+        self._dt = 1
+        self._nSubSteps = 10
+        self._t0 = t0
+
+        self._timeSeries = PopulationTimeSeries()
+
+        # Now add the couplings
+        self._model = CModel('SIRCD')
+        self._model.set_coupling_rate('S*I:S=>I', self._beta[0], name='beta')  # Infection rate
+        self._model.set_coupling_rate('S*I:=>C', self._beta[0] * self._epsilon[0], name='epsilon_beta')  # Confirmed rate
+        self._model.set_coupling_rate('I:I=>R', self._gamma[0], name='gamma')  # Recovery rate
+        self._model.set_coupling_rate('I:=>D', self._gamma[0] * self._delta[0], name='gamma')  # Recovery rate
+
+    def evolveSystem(self):
+        t_start = 0
+        t_end = self._nSteps
+        t_inc = self._dt
+        N = self._population.totalPopulation
+        initial_values = (self._population.susceptibles / N,
+                          self._population.infectious / N,
+                          self._population.recovered_with_immunity / N,
+                          self._population.confirmed / N,
+                          self._population.deaths / N)
+        t_range = np.arange(t_start, t_end + t_inc, t_inc)
+#        t_span = (t_start, t_end)
+#        res = integrate.solve_ivp(
+#           self._diff_eqs, t_span, initial_values, t_eval=t_range)
+#        assert res.success is True
+#        self._timeSeries.add(res.t, res.y[0], res.y[1], res.y[2],
+#                             res.y[3], res.y[4])
+
+        res = self._model.integrate(t_range, initial_values)
+        self._timeSeries.add(t_range, res[:, 0] * N, res[:, 1] * N,
+                             res[:, 2] * N, res[:, 3] * N, res[:, 4] * N)
+
+
 def main(susceptibles=99.9, infectious=.1, immunes=0,
          confirmed=0, deaths=0,
          contact_rate=0.3, average_infection_period=10,
          nSteps=100, epsilon=0.1, delta=0.001):
-    system = SIRCD(susceptibles, infectious, immunes, confirmed, deaths,
-                   contact_rate, average_infection_period,
-                   nSteps, epsilon, delta)
+    systemo = SIRCD(susceptibles, infectious, immunes, confirmed, deaths,
+                    contact_rate, average_infection_period,
+                    nSteps, epsilon, delta)
+    systemo.evolveSystem()
+    systemo.plot()
+
+    system = SIRCD_new(susceptibles, infectious, immunes, confirmed, deaths,
+                       contact_rate, average_infection_period,
+                       nSteps, epsilon, delta)
     system.evolveSystem()
     system.plot()
+
     return system
