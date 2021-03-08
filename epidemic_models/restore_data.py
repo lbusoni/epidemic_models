@@ -494,3 +494,26 @@ class PopolazioneRegioniItaliane():
                                 'popolazione_italiana',
                                 'popolazione_regioni.csv')
         return pd.read_csv(filename, sep=';')
+
+
+class PopolazioneFasceAnagrafiche():
+
+    def __init__(self):
+        self._p = self._load_csv_fasce_anagrafiche()
+
+    def _load_csv_fasce_anagrafiche(self):
+        rootDir = dataRootDir()
+        filename = os.path.join(rootDir,
+                                'popolazione_italiana',
+                                'fasce_eta.csv')
+        return pd.read_csv(filename, sep='\s+')
+
+    def fascia(self, eta_min, eta_max):
+        return self._p[(self._p.eta >= eta_min) & (self._p.eta < eta_max)]['totale'].sum()
+
+    def maschi(self, eta_min, eta_max):
+        return self._p[(self._p.eta >= eta_min) & (self._p.eta < eta_max)]['maschi'].sum()
+
+    def femmine(self, eta_min, eta_max):
+        return self._p[(self._p.eta >= eta_min) & (self._p.eta < eta_max)]['femmine'].sum()
+
