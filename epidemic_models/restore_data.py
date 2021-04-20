@@ -437,14 +437,29 @@ class PopolazioneRegioniItaliane():
     SUD = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, MOLISE, PUGLIA,
            SARDEGNA, SICILIA]
 
+    _DICT = {"ABR":ABRUZZO, "BAS":BASILICATA, "CAL":CALABRIA, "CAM":CAMPANIA,
+             "EMR":EMILIA_ROMAGNA, "FVG":FRIULI_VENEZIA_GIULIA, "LAZ":LAZIO,
+             "LIG":LIGURIA, "LOM":LOMBARDIA, "MAR":MARCHE, "MOL":MOLISE,
+             "PAB":None, "PAT":None, "PIE":PIEMONTE, "PUG":PUGLIA,
+             "SAR":SARDEGNA, "SIC":SICILIA, "TOS":TOSCANA, "UMB":UMBRIA,
+             "VDA":VALLE_DI_AOSTA, "VEN":VENETO,
+             "ITALIA":ITALIA, "NORD":NORD, "CENTRO":CENTRO, "SUD":SUD}
+
     def __init__(self, denominazione_regione):
         self._all = self.load_csv_regioni()
+        denominazione_regione = self._translate(denominazione_regione)
         self._createLabel(denominazione_regione)
         if not isinstance(denominazione_regione, list):
             denominazione_regione = (denominazione_regione,)
         self._filter = \
             self._all[self.DENOMINAZIONE_REGIONE].isin(denominazione_regione)
         self._data = self._all[self._filter].sum()
+
+    def _translate(self, denominazione_regione):
+        if isinstance(denominazione_regione, str):
+            if denominazione_regione in self._DICT:
+                denominazione_regione = self._DICT[denominazione_regione]
+        return denominazione_regione
 
     def _createLabel(self, denominazione_regione):
         if denominazione_regione == self.ITALIA:
@@ -496,7 +511,7 @@ class PopolazioneRegioniItaliane():
         return pd.read_csv(filename, sep=';')
 
 
-class PopolazioneFasceAnagrafiche():
+class PopolazioneFasceAnagraficheBUTTA():
 
     def __init__(self):
         self._p = self._load_csv_fasce_anagrafiche()
@@ -517,3 +532,85 @@ class PopolazioneFasceAnagrafiche():
     def femmine(self, eta_min, eta_max):
         return self._p[(self._p.eta >= eta_min) & (self._p.eta < eta_max)]['femmine'].sum()
 
+
+class PopolazioneFasceAnagrafiche():
+    ABRUZZO = 'ITF1'
+    BASILICATA = 'ITF5'
+    CALABRIA = "ITF6"
+    CAMPANIA = "ITF3"
+    EMILIA_ROMAGNA = "ITD5"
+    FRIULI_VENEZIA_GIULIA = "ITD4"
+    LAZIO = "ITE4"
+    LIGURIA = "ITC3"
+    LOMBARDIA = "ITC4"
+    MARCHE = "ITE3"
+    MOLISE = "ITF2"
+    PIEMONTE = "ITC1"
+    PROVINCIA_BOLZANO = "ITD1"
+    PROVINCIA_TRENTO = "ITD2"
+    PUGLIA = "ITF4"
+    SARDEGNA = "ITG2"
+    SICILIA = "ITG1"
+    TOSCANA = "ITE1"
+    UMBRIA = "ITE2"
+    VALLE_DI_AOSTA = "ITC2"
+    VENETO = "ITD3"
+
+    ITALIA = "IT"
+    NORD_EST = "ITD"
+    NORD_OVEST = "ITC"
+    CENTRO = "ITE"
+    ISOLE = "ITG"
+    SUD = "ITF"
+
+    _DICT = {"ABR":ABRUZZO, "BAS":BASILICATA, "CAL":CALABRIA, "CAM":CAMPANIA,
+             "EMR":EMILIA_ROMAGNA, "FVG":FRIULI_VENEZIA_GIULIA, "LAZ":LAZIO,
+             "LIG":LIGURIA, "LOM":LOMBARDIA, "MAR":MARCHE, "MOL":MOLISE,
+             "PAB":PROVINCIA_BOLZANO, "PAT":PROVINCIA_TRENTO, "PIE":PIEMONTE, "PUG":PUGLIA,
+             "SAR":SARDEGNA, "SIC":SICILIA, "TOS":TOSCANA, "UMB":UMBRIA,
+             "VDA":VALLE_DI_AOSTA, "VEN":VENETO,
+             "ITALIA":ITALIA, "NORD_EST":NORD_EST, "NORD_OVEST":NORD_OVEST,
+             "CENTRO":CENTRO, "ISOLE":ISOLE, "SUD":SUD}
+
+    def __init__(self):
+        self._p = self._load_csv_fasce_anagrafiche()
+        self._p['eta'] = self._p.apply(self._convert_eta_to_integer, axis=1)
+
+    @staticmethod
+    def _convert_eta_to_integer(record):
+        if "_GE100" in record['ETA1']:
+            return 100
+        elif "TOTAL" in record['ETA1']:
+            return -1
+        else:
+            return int(record['ETA1'][1:])
+
+    def _translate(self, denominazione_regione):
+        if denominazione_regione is None:
+            return self.ITALIA
+        if isinstance(denominazione_regione, str):
+            if denominazione_regione in self._DICT:
+                denominazione_regione = self._DICT[denominazione_regione]
+        return denominazione_regione
+
+    def _load_csv_fasce_anagrafiche(self):
+        rootDir = dataRootDir()
+        filename = os.path.join(rootDir,
+                                'popolazione_italiana',
+                                'popolazione_eta_regioni.csv')
+        return pd.read_csv(filename, sep=',')
+
+    def _filtra(self, sesso, eta_min, eta_max, area=None):
+        area = self._translate(area)
+        aa = self._p
+        return aa[(aa.ITTER107 == area) & (aa.Sesso == sesso) &
+                  (aa.eta >= eta_min) & (aa.eta <= eta_max)]["Value"].sum()
+
+    def fascia(self, eta_min, eta_max, area=None):
+        return self._filtra("totale", eta_min, eta_max, area)
+
+    def maschi(self, eta_min, eta_max, area=None):
+        return self._filtra("maschi", eta_min, eta_max, area)
+
+    def femmine(self, eta_min, eta_max, area=None):
+        return self._filtra("femmine", eta_min, eta_max, area)
