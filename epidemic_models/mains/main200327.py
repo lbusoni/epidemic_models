@@ -106,7 +106,7 @@ def plotDatiDpc(who=DpcCovid.ITALIA):
 
 
 def plotTerapieIntensive():
-    dI = DpcCovid(DpcCovid.ALL)
+    dI = DpcCovid(DpcCovid.ITALIA)
     dL = DpcCovid(DpcCovid.LOMBARDIA)
     dT = DpcCovid(DpcCovid.TOSCANA)
     dV = DpcCovid(DpcCovid.VENETO)
@@ -137,4 +137,4 @@ def doublingTimeVsR():
     plt.legend()
     plt.grid()
     plt.ylim(-20, 20)
-    
+
