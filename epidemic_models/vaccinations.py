@@ -33,7 +33,8 @@ class Vaccinations():
         r = urllib.request.urlretrieve(self.URL_CONSEGNE)
         d = json.load(open(r[0]))
         self._consegne = pd.DataFrame(d['data'])
-        self._consegne['data_consegna'] = self._consegne['data_consegna'].astype('datetime64[ns]')
+        self._consegne['data_consegna'] = self._consegne['data_consegna'].astype(
+            'datetime64[ns]')
         self._consegne_schema = d['schema']
 
     def _load_vaccini_summary(self):
@@ -52,7 +53,8 @@ class Vaccinations():
         r = urllib.request.urlretrieve(self.URL_SOMMINISTRAZIONI)
         d = json.load(open(r[0]))
         somministrazioni = pd.DataFrame(d['data'])
-        somministrazioni['data_somministrazione'] = somministrazioni['data_somministrazione'].astype('datetime64[ns]')
+        somministrazioni['data_somministrazione'] = somministrazioni['data_somministrazione'].astype(
+            'datetime64[ns]')
         somministrazioni_schema = d['schema']
         somministrazioni[self.DOSI_TOTALI] = somministrazioni.apply(
             lambda x: x['sesso_maschile'] + x['sesso_femminile'], axis=1)
@@ -91,14 +93,14 @@ class Vaccinations():
         ss = self._filtra_per_area(self._somministrazioni, area)
         ds = ss[[
             'data_somministrazione',
-            'categoria_operatori_sanitari_sociosanitari',
-            'categoria_personale_non_sanitario',
-            'categoria_ospiti_rsa',
-            'categoria_over80',
-            'categoria_forze_armate',
-            'categoria_personale_scolastico',
-            'categoria_altro',
-            ]]
+            #            'categoria_operatori_sanitari_sociosanitari',
+            #            'categoria_personale_non_sanitario',
+            #            'categoria_ospiti_rsa',
+            #            'categoria_over80',
+            #            'categoria_forze_armate',
+            #            'categoria_personale_scolastico',
+            #            'categoria_altro',
+        ]]
         ax = ds.groupby('data_somministrazione').agg('sum').cumsum().plot()
         ax.grid(True)
 
@@ -138,18 +140,18 @@ class Vaccinations():
         ds = ss[[
             'data_somministrazione',
             'fornitore',
-            'categoria_operatori_sanitari_sociosanitari',
-            'categoria_personale_non_sanitario',
-            'categoria_ospiti_rsa',
-            'categoria_over80',
-            'categoria_forze_armate',
-            'categoria_personale_scolastico',
+            #            'categoria_operatori_sanitari_sociosanitari',
+            #            'categoria_personale_non_sanitario',
+            #            'categoria_ospiti_rsa',
+            #            'categoria_over80',
+            #            'categoria_forze_armate',
+            #            'categoria_personale_scolastico',
             self.PRIMA_DOSE,
             self.SECONDA_DOSE,
             self.DOSI_TOTALI,
             'sesso_maschile',
             'sesso_femminile'
-            ]]
+        ]]
 
         return ds.groupby(['fornitore', 'data_somministrazione']).agg('sum')
 
@@ -208,11 +210,15 @@ class Vaccinations():
             ret = ss.groupby('data_somministrazione').agg('sum')
             pop = self._popolazione_in_fascia("0+", area=area)
         else:
-            ret = ss[ss.fascia_anagrafica == fascia_anagrafica].groupby('data_somministrazione').agg('sum')
+            ret = ss[ss.fascia_anagrafica == fascia_anagrafica].groupby(
+                'data_somministrazione').agg('sum')
             pop = self._popolazione_in_fascia(fascia_anagrafica, area=area)
-        ret[self.FRAZIONE_DOSI_TOTALI] = ret.apply(lambda x: x[self.DOSI_TOTALI] / pop, axis=1)
-        ret[self.FRAZIONE_PRIMA_DOSE] = ret.apply(lambda x: x[self.PRIMA_DOSE] / pop, axis=1)
-        ret[self.FRAZIONE_SECONDA_DOSE] = ret.apply(lambda x: x[self.SECONDA_DOSE] / pop, axis=1)
+        ret[self.FRAZIONE_DOSI_TOTALI] = ret.apply(
+            lambda x: x[self.DOSI_TOTALI] / pop, axis=1)
+        ret[self.FRAZIONE_PRIMA_DOSE] = ret.apply(
+            lambda x: x[self.PRIMA_DOSE] / pop, axis=1)
+        ret[self.FRAZIONE_SECONDA_DOSE] = ret.apply(
+            lambda x: x[self.SECONDA_DOSE] / pop, axis=1)
         return ret
 
     def somministrati_velocita(self, area=None, rolling_mean='14d'):
@@ -239,7 +245,8 @@ class Vaccinations():
                 ax=ax, label=fas, **kwargs)
         ax.legend()
         ax.set_ylabel('Dosi')
-        ax.set_title('Dosi per fascia anagrafica - %s' % (area if area else "ITA"))
+        ax.set_title('Dosi per fascia anagrafica - %s' %
+                     (area if area else "ITA"))
         ax.grid(True)
 
     def _keyword_dose_to_frazione(self, key):
@@ -261,7 +268,8 @@ class Vaccinations():
                 ax=ax, label=fas, **kwargs)
         ax.legend()
         ax.set_ylabel('Dosi per persona')
-        ax.set_title('Dosi per persona per fascia anagrafica - %s' % (area if area else "ITA"))
+        ax.set_title('Dosi per persona per fascia anagrafica - %s' %
+                     (area if area else "ITA"))
         ax.grid(True)
 
     def _popolazione_in_fascia(self, fascia_str, area=None):
@@ -278,7 +286,8 @@ class Vaccinations():
             self, area=None, dose=None, **kwargs):
         fraz = self._keyword_dose_to_frazione(dose)
         for fas in self.fasce_anagrafiche():
-            reg = self.somministrati(fascia_anagrafica=fas, area=area)[fraz].cumsum()
+            reg = self.somministrati(fascia_anagrafica=fas, area=area)[
+                fraz].cumsum()
             ita = self.somministrati(fascia_anagrafica=fas)[fraz].cumsum()
             plt.plot((reg - ita) / ita * 100, label=fas, **kwargs)
         plt.legend()
@@ -296,35 +305,41 @@ class Vaccinations():
         plt.grid(True)
 
     def plot_stack_fascia_anagrafica_per_area(self):
-        aa = self._somministrazioni.groupby(["area", "fascia_anagrafica"]).agg(sum)[self.DOSI_TOTALI].unstack()
+        aa = self._somministrazioni.groupby(["area", "fascia_anagrafica"]).agg(sum)[
+            self.DOSI_TOTALI].unstack()
         bb = self._somministrazioni.groupby("area").agg(sum)[self.DOSI_TOTALI]
         cc = 100 * aa.div(bb, axis='rows')
         cc.plot.bar(stacked=True)
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), fancybox=True, ncol=5)
+        plt.legend(loc='upper center', bbox_to_anchor=(
+            0.5, 1.2), fancybox=True, ncol=5)
 
-    def plot_stack_categoria_per_area(self):
-        ds = self._somministrazioni[[
-            'area',
-            'categoria_operatori_sanitari_sociosanitari',
-            'categoria_personale_non_sanitario',
-            'categoria_ospiti_rsa',
-            'categoria_over80',
-            'categoria_forze_armate',
-            'categoria_personale_scolastico',
-            ]]
+#     def plot_stack_categoria_per_area(self):
+#         ds = self._somministrazioni[[
+#             'area',
+#             'categoria_operatori_sanitari_sociosanitari',
+#             'categoria_personale_non_sanitario',
+#             'categoria_ospiti_rsa',
+#             'categoria_over80',
+#             'categoria_forze_armate',
+#             'categoria_personale_scolastico',
+#         ]]
 
         aa = ds.groupby("area").agg(sum)
         bb = self._somministrazioni.groupby("area").agg(sum)[self.DOSI_TOTALI]
         cc = 100 * aa.div(bb, axis='rows')
         cc.plot.bar(stacked=True)
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), fancybox=True, ncol=2)
+        plt.legend(loc='upper center', bbox_to_anchor=(
+            0.5, 1.2), fancybox=True, ncol=2)
 
     def plot_stack_riserve_per_area(self):
-        aa = self._somministrazioni.groupby(["area", "fornitore"]).agg(sum)[self.DOSI_TOTALI].unstack()
-        bb = self._consegne.groupby(["area", "fornitore"]).agg(sum)["numero_dosi"].unstack()
+        aa = self._somministrazioni.groupby(["area", "fornitore"]).agg(sum)[
+            self.DOSI_TOTALI].unstack()
+        bb = self._consegne.groupby(["area", "fornitore"]).agg(sum)[
+            "numero_dosi"].unstack()
         cc = bb - aa
         cc.plot.bar(stacked=True)
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), fancybox=True, ncol=3)
+        plt.legend(loc='upper center', bbox_to_anchor=(
+            0.5, 1.2), fancybox=True, ncol=3)
 
     def quando_mi_tocca(self, eta, area=None, con_richiamo=False):
         fas = []
@@ -338,12 +353,12 @@ class Vaccinations():
         for f in fas:
             mancano += (1 - self.somministrati(fascia_anagrafica=f, area=area)[
                 self.FRAZIONE_PRIMA_DOSE].sum()
-                ) * self._popolazione_in_fascia(f, area=area)
+            ) * self._popolazione_in_fascia(f, area=area)
             if con_richiamo:
                 mancano += (1 - self.somministrati(fascia_anagrafica=f,
                                                    area=area)[
                     self.FRAZIONE_SECONDA_DOSE].sum()
-                    ) * self._popolazione_in_fascia(f, area=area)
+                ) * self._popolazione_in_fascia(f, area=area)
 
         somministrazioni_al_giorno = self.somministrati_velocita(
             area=area)[self.DOSI_TOTALI][-1]
@@ -364,7 +379,8 @@ class ConsegnePreviste():
             self._piano_consegne = self._data210303()
         else:
             raise ValueError("Piano vaccinale %s sconosciuto" % piano)
-        self._consegne_previste = self._linear_interpolation(self._piano_consegne)
+        self._consegne_previste = self._linear_interpolation(
+            self._piano_consegne)
 
     @property
     def consegne_previste(self):
@@ -381,7 +397,7 @@ class ConsegnePreviste():
         dataQ0 = {
             'data_consegna': pd.to_datetime(["2021-01-01"] * n_fornitori),
             'fornitore': fornitori_lista,
-            'numero_dosi': np.array([ 0, 0.456, 0, 0, 0, 0]) * 1e6
+            'numero_dosi': np.array([0, 0.456, 0, 0, 0, 0]) * 1e6
         }
         dataQ1 = {
             'data_consegna': pd.to_datetime(["2021-03-31"] * n_fornitori),
@@ -524,8 +540,10 @@ class ConsegnePreviste():
         fornitori = consegne['fornitore'].unique()
         a = []
         for forn in fornitori:
-            dd = consegne.query('fornitore == @forn')[['data_consegna', 'numero_dosi']]
-            dInt = dd.set_index('data_consegna').resample('D').mean().interpolate('linear')
+            dd = consegne.query('fornitore == @forn')[
+                ['data_consegna', 'numero_dosi']]
+            dInt = dd.set_index('data_consegna').resample(
+                'D').mean().interpolate('linear')
             dDiff = dInt.diff()
             dDiff['fornitore'] = forn
             a.append(dDiff)
@@ -575,7 +593,8 @@ def sandbox():
         'Curevac': 0.500000})
 
     vv = Vaccinations()
-    frTos = vv._popolazione_in_fascia('0-200', area='TOS') / vv._popolazione_in_fascia('0-200')
+    frTos = vv._popolazione_in_fascia(
+        '0-200', area='TOS') / vv._popolazione_in_fascia('0-200')
 
 
 def quando_tocca(vv, area=None):

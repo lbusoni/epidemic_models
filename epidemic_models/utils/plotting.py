@@ -1,14 +1,8 @@
 
 import matplotlib.pyplot as plt
-from epidemic_models.restore_data import DpcCovid
 from epidemic_models.utils.exponential_fitting import doubling_time, \
     daily_increment
-from datetime import datetime
-
-
-def dataAtToday():
-    now = datetime.now()
-    return now.strftime("data at %m/%d/%Y")
+from epidemic_models.dpc_covid import DpcCovid
 
 
 def _parse(who, what, split=False, per_inhabitant=False,
@@ -71,4 +65,3 @@ def plotRegioniVs(who, whatX, whatY, split=False,
     plt.xlabel(whatX)
     plt.ylabel(whatY)
     plt.grid(True)
-

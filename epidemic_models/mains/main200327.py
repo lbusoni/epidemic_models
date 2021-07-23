@@ -1,9 +1,10 @@
 from epidemic_models import seirah
 import matplotlib.pyplot as plt
 import numpy as np
-from epidemic_models.restore_data import CSSECovid, DpcCovid, diff_from_zero
+from epidemic_models.restore_data import CSSECovid
 from epidemic_models.utils import piecewise
-from epidemic_models.utils.plotting import dataAtToday
+from epidemic_models.dpc_covid import DpcCovid
+from epidemic_models.utils.today import dataAtToday
 
 
 def plotModelloLombardia():
@@ -53,7 +54,8 @@ def plotModelloLombardia():
     system3.evolveSystem()
     system3.plot()
     plt.plot(system3.timeSeries.timeVector,
-             system3.timeSeries.susceptibles[0] - system3.timeSeries.susceptibles,
+             system3.timeSeries.susceptibles[0] -
+             system3.timeSeries.susceptibles,
              color='C7', label='total cases')
     plt.plot(system3.timeSeries.timeVector,
              system3.timeSeries.recovered_with_immunity * 0.005,
@@ -75,34 +77,7 @@ def plotModelloLombardia():
 
 def plotDatiDpc(who=DpcCovid.ITALIA):
     dI = DpcCovid(who)
-
-    plt.figure()
-    plt.plot(dI.data, dI.deceduti, '.-', label='deceduti')
-    plt.plot(dI.data, dI.dimessi_guariti, '.-', label='dimessi_guariti')
-    plt.plot(dI.data, dI.totale_casi, '.-', label='totale_casi')
-    plt.plot(dI.data, dI.tamponi, '.-', label='tamponi')
-    plt.plot([], [], ' ', label=dataAtToday())
-    plt.semilogy()
-    plt.legend()
-    plt.grid()
-
-    plt.figure()
-    plt.plot(dI.data, dI.isolamento_domiciliare, '.-', label='isolamento domiciliare')
-    plt.plot(dI.data, dI.ricoverati_con_sintomi, '.-', label='ricoverati con sintomi')
-    plt.plot(dI.data, dI.terapia_intensiva, '.-', label='terapia intensiva')
-    plt.plot([], [], ' ', label=dataAtToday())
-    plt.semilogy()
-    plt.legend()
-    plt.grid()
-
-    plt.figure()
-    plt.plot(dI.data, dI.nuovi_contagiati, '.-', label='nuovi contagiati')
-    plt.plot(dI.data, dI.nuovi_deceduti, '.-', label='nuovi deceduti')
-    plt.plot(dI.data, dI.nuovi_dimessi_guariti, '.-', label='nuovi dimessi')
-    plt.plot([], [], ' ', label=dataAtToday())
-    plt.semilogy()
-    plt.legend()
-    plt.grid()
+    dI.plot_summary()
 
 
 def plotTerapieIntensive():
@@ -112,13 +87,19 @@ def plotTerapieIntensive():
     dV = DpcCovid(DpcCovid.VENETO)
 
     plt.figure()
-    plt.plot(dL.data, dL.terapia_intensiva / dL.totale_attualmente_positivi, 'x-', color='C2', label='ICU/positivi Lombardia')
-    plt.plot(dV.data, dV.terapia_intensiva / dV.totale_attualmente_positivi, 'x-', color='C3', label='ICU/positivi Veneto')
-    plt.plot(dT.data, dT.terapia_intensiva / dT.totale_attualmente_positivi, 'x-', color='C4', label='ICU/positivi Toscana')
+    plt.plot(dL.data, dL.terapia_intensiva / dL.totale_attualmente_positivi,
+             'x-', color='C2', label='ICU/positivi Lombardia')
+    plt.plot(dV.data, dV.terapia_intensiva / dV.totale_attualmente_positivi,
+             'x-', color='C3', label='ICU/positivi Veneto')
+    plt.plot(dT.data, dT.terapia_intensiva / dT.totale_attualmente_positivi,
+             'x-', color='C4', label='ICU/positivi Toscana')
 
-    plt.plot(dL.data, dL.nuovi_deceduti / dL.terapia_intensiva, '.-', color='C2', label='morti/ICU Lombardia')
-    plt.plot(dV.data, dV.nuovi_deceduti / dV.terapia_intensiva, '.-', color='C3', label='morti/ICU Veneto')
-    plt.plot(dT.data, dT.nuovi_deceduti / dT.terapia_intensiva, '.-', color='C4', label='morti/ICU Toscana')
+    plt.plot(dL.data, dL.nuovi_deceduti / dL.terapia_intensiva,
+             '.-', color='C2', label='morti/ICU Lombardia')
+    plt.plot(dV.data, dV.nuovi_deceduti / dV.terapia_intensiva,
+             '.-', color='C3', label='morti/ICU Veneto')
+    plt.plot(dT.data, dT.nuovi_deceduti / dT.terapia_intensiva,
+             '.-', color='C4', label='morti/ICU Toscana')
 
     plt.plot([], [], ' ', label="data at 27 Mar 2020")
     plt.legend()
@@ -131,10 +112,11 @@ def doublingTimeVsR():
     t2 = np.log(2) / (gamma * (R - 1))
     plt.figure()
     plt.plot(R, t2, '-')
-    plt.plot([], [], ' ', label=r'$\tau=\frac{\log(2)}{\gamma (R-1)}$' + '\n' + r'$\gamma=%g$' % gamma)
+    plt.plot(
+        [], [], ' ', label=r'$\tau=\frac{\log(2)}{\gamma (R-1)}$' + '\n' + r'$\gamma=%g$' % gamma)
     plt.xlabel(r'Effective Reproduction Number R')
-    plt.ylabel(r'Infectious doubling time (halving, if negative) $ \tau $ [days]')
+    plt.ylabel(
+        r'Infectious doubling time (halving, if negative) $ \tau $ [days]')
     plt.legend()
     plt.grid()
     plt.ylim(-20, 20)
-
