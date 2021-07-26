@@ -1,6 +1,6 @@
 import numpy as np
 from epidemic_models.restore_data import PopolazioneRegioniItaliane,\
-    diff_from_zero
+    diff_from_zero, PostiLettoItalia
 import datetime
 from epidemic_models.utils.package_data import dataRootDir
 import os
@@ -50,6 +50,8 @@ class DpcCovid():
     NUOVI_DECEDUTI = 'nuovi_deceduti'
     NUOVI_TAMPONI = 'nuovi_tamponi'
     INCIDENZA_SETTIMANALE = 'incidenza_settimanale_per_100k'
+    OCCUPAZIONE_AREA_NON_CRITICA = 'occupazione_area_non_critica'
+    OCCUPAZIONE_TERAPIA_INTENSIVA = 'occupazione_terapia_intensiva'
 
     ABRUZZO = 'Abruzzo'
     BASILICATA = 'Basilicata'
@@ -96,6 +98,7 @@ class DpcCovid():
         if denominazione_regione is None:
             denominazione_regione = self.ITALIA
         self._pop = PopolazioneRegioniItaliane(denominazione_regione)
+        self._posti_letto = PostiLettoItalia(denominazione_regione)
         self._all = self.load_csv_regioni()
         self._createLabel(denominazione_regione)
         if not isinstance(denominazione_regione, list):
@@ -122,6 +125,10 @@ class DpcCovid():
             self.isolamento_domiciliare)
         self._data[self.INCIDENZA_SETTIMANALE] = self._rolling_sum(
             self.nuovi_positivi, how_long='7d') / self._pop.residenti * 1e5
+        self._data[self.OCCUPAZIONE_AREA_NON_CRITICA] = \
+            self.ricoverati_con_sintomi / self._posti_letto.area_non_critica()
+        self._data[self.OCCUPAZIONE_TERAPIA_INTENSIVA] = \
+            self.terapia_intensiva / self._posti_letto.terapia_intensiva()
 
     def _rolling_sum(self, what, how_long='7d'):
         return what.rolling(how_long).sum()
@@ -246,6 +253,14 @@ class DpcCovid():
     def incidenza_settimanale(self):
         return self.select(self.INCIDENZA_SETTIMANALE)
 
+    @property
+    def occupazione_area_non_critica(self):
+        return self.select(self.OCCUPAZIONE_AREA_NON_CRITICA)
+
+    @property
+    def occupazione_terapia_intensiva(self):
+        return self.select(self.OCCUPAZIONE_TERAPIA_INTENSIVA)
+
     def select(self, what):
         return self._data[what]
 
@@ -325,5 +340,25 @@ class DpcCovid():
         ax.plot([], [], ' ', label=dataAtToday())
         ax.set_title('Daily variation - %s' % self._label)
         ax.semilogy()
+        ax.legend()
+        ax.grid(True)
+
+        plt.figure()
+        ax = None
+        ax = self.occupazione_area_non_critica.plot(
+            ax=ax, label='occupazione area non critica', ls='-', marker='.',
+            color='b')
+        ax = self.occupazione_terapia_intensiva.plot(
+            ax=ax, label='occupazione_terapia_intensiva', ls='-', marker='.',
+            color='r')
+        threGiallaNC = 0.15
+        threGiallaTI = 0.10
+
+        ax.axhline(threGiallaNC, ls='--', color='b')
+        ax.axhline(threGiallaTI, ls='--', color='r')
+        ax.plot([], [], ' ', label=dataAtToday())
+
+        ax.set_title('Occupazione posti letto - %s' % self._label)
+        ax.set_ylabel('Fraction')
         ax.legend()
         ax.grid(True)

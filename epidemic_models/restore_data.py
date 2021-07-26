@@ -340,3 +340,81 @@ class PopolazioneFasceAnagrafiche():
 
     def femmine(self, eta_min, eta_max, area=None):
         return self._filtra("femmine", eta_min, eta_max, area)
+
+
+class PostiLettoItalia():
+
+    DENOMINAZIONE_REGIONE = 'Regioni'
+    AREA_NON_CRITICA = 'PL in Area Non Critica'
+    TERAPIA_INTENSIVA = 'PL in Terapia Intensiva'
+    TERAPIA_INTENSIVA_ATTIVABILI = 'PL Terapia Intensiva attivabili'
+
+    ABRUZZO = 'Abruzzo'
+    BASILICATA = 'Basilicata'
+    CALABRIA = "Calabria"
+    CAMPANIA = "Campania"
+    EMILIA_ROMAGNA = "Emilia-Romagna"
+    FRIULI_VENEZIA_GIULIA = "Friuli Venezia Giulia"
+    LAZIO = "Lazio"
+    LIGURIA = "Liguria"
+    LOMBARDIA = "Lombardia"
+    MARCHE = "Marche"
+    MOLISE = "Molise"
+    PROVINCIA_BOLZANO = "P.A. Bolzano"
+    PROVINCIA_TRENTO = "P.A. Trento"
+    PIEMONTE = "Piemonte"
+    PUGLIA = "Puglia"
+    SARDEGNA = "Sardegna"
+    SICILIA = "Sicilia"
+    TOSCANA = "Toscana"
+    UMBRIA = "Umbria"
+    VALLE_DI_AOSTA = "Valle d'Aosta"
+    VENETO = "Veneto"
+
+    ITALIA = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, EMILIA_ROMAGNA,
+              FRIULI_VENEZIA_GIULIA, LAZIO, LIGURIA, LOMBARDIA, MARCHE,
+              MOLISE, PIEMONTE, PUGLIA, SARDEGNA, SICILIA,
+              TOSCANA, PROVINCIA_BOLZANO, PROVINCIA_TRENTO, UMBRIA,
+              VALLE_DI_AOSTA, VENETO]
+
+    TRENTINO_ALTO_ADIGE = [PROVINCIA_BOLZANO, PROVINCIA_TRENTO]
+
+    NORD = [EMILIA_ROMAGNA,
+            FRIULI_VENEZIA_GIULIA, LIGURIA, LOMBARDIA,
+            PIEMONTE, TRENTINO_ALTO_ADIGE, VALLE_DI_AOSTA, VENETO]
+
+    CENTRO = [LAZIO, MARCHE, TOSCANA, UMBRIA]
+
+    SUD = [ABRUZZO, BASILICATA, CALABRIA, CAMPANIA, MOLISE, PUGLIA,
+           SARDEGNA, SICILIA]
+
+    def __init__(self, area=None):
+        self._all = self._load_csv_posti_letto()
+        if area is None:
+            area = self.ITALIA
+        self._posti_letto = self._filtra_per_area(area)
+
+    def _filtra_per_area(self, area):
+        if not isinstance(area, list):
+            lista_regioni = (area,)
+        else:
+            lista_regioni = area
+        filtro = \
+            self._all[self.DENOMINAZIONE_REGIONE].isin(lista_regioni)
+        return self._all[filtro].sum()
+
+    def _load_csv_posti_letto(self):
+        rootDir = dataRootDir()
+        filename = os.path.join(rootDir,
+                                'popolazione_italiana',
+                                'posti_letto_italia.csv')
+        return pd.read_csv(filename, sep=';')
+
+    def terapia_intensiva(self):
+        return self._posti_letto[self.TERAPIA_INTENSIVA]
+
+    def area_non_critica(self):
+        return self._posti_letto[self.AREA_NON_CRITICA]
+
+    def terapia_intensiva_attivabili(self):
+        return self._posti_letto[self.TERAPIA_INTENSIVA_ATTIVABILI]
