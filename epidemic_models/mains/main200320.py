@@ -49,8 +49,8 @@ def plotFB():
              color='C4',
              label='deaths Italy')
     plt.plot([], [], ' ', label="data at 17 Mar 2020")
-    plt.ylim(10, 1e4)
-    plt.xlim(20, 60)
+    plt.ylim(10, 1e5)
+    plt.xlim(20, 150)
     plt.xlabel(strdates)
     plt.title('')
     plt.legend()
