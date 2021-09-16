@@ -147,6 +147,6 @@ def howIsGoing(who):
     plotRegione(who, DpcCovid.NUOVI_DECEDUTI)
     plotRegione(who, DpcCovid.VARIAZIONE_TOTALE_POSITIVI)
     plotRegione(who, DpcCovid.NUOVI_DIMESSI_GUARITI)
-    plotRegione(who, DpcCovid.NUOVI_CONTAGIATI)
+    plotRegione(who, DpcCovid.NUOVI_POSITIVI)
     plt.semilogy()
 
